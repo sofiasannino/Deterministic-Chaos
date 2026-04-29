@@ -12,13 +12,13 @@ params.plot.insetFontSize = 10;
 params.plot.lw = 1.5;
 params.plot.lwsmall = 1.2;
 
+params.fileName = 'veldata.txt'; %
+params.samplingFreq = 20e3;  %
+
 [u, U] = load_data(params.fileName, Inf);
 
-% lincr = [...];
-params.samplingFreq = 1;
-
-warning('Set the length increments and other relvant parameters');
-
+lincr = [1e-3, 1e-2, 1e-1, 10]; %
+lincr_labels = {'1 mm', '1 cm', '10 cm', '10 m'};
 
 %% --- Loop through dataset ---
 plotD = figure();
@@ -28,7 +28,7 @@ for i = 1:length(lincr)  % loop over l values
     [x, d] = increment(u, lincr(i), params.samplingFreq, U);
     x = x(x <= maxx_plot);
     subplot(2, 2, i)
-    % plot(...);
+    plot(x, d(1:length(x)), 'LineWidth', params.plot.lwsmall);
     miny = min(d);
     maxy = max(d);
     if abs(miny) > maxy
@@ -36,9 +36,9 @@ for i = 1:length(lincr)  % loop over l values
     elseif maxy > abs(miny)
         miny = -maxy;
     end
-    % xlim([...]);
-    % ylim([...]);
-    % yline(0, '-', ...);
+    xlim([0 maxx_plot]);
+    ylim([miny maxy]);
+    yline(0, '-', 'HandleVisibility', 'off');
 
     % Axes labels
     if i == 3 || i == 4

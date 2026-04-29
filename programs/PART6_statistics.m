@@ -12,9 +12,11 @@ params.plot.insetFontSize = 10;
 params.plot.lw = 1.5;
 params.plot.lwsmall = 1.2;
 
+params.fileName = 'veldata.txt'; %
+params.samplingFreq = 20e3; %
 [u, U] = load_data(params.fileName, Inf);
 
-% lincr = [...];
+lincr = [1e-3, 1e-2, 1e-1, 10]; %
 warning('Set the length increments and other relvant parameters');
 
 
@@ -49,21 +51,21 @@ for scale = 1:2  % 1: semilogy, 2: linear
         cla(s)
 
         if scale == 1
-            % semilogy(..., 'LineWidth', params.plot.lw);
+            semilogy(increments, values, 'LineWidth', params.plot.lw);
             ylim([1e-7 5e1])
         else
-            % plot(..., 'LineWidth', params.plot.lw);
+            plot(increments, values, 'LineWidth', params.plot.lw);
         end
 
-        % bound = ...;
-        % xlim([-bound, bound]);
+        bound = 6*std(d); %
+        xlim([-bound, bound]);
 
         G = fit_gaussian(increments, d);
         hold on; grid on;
-        % plot(..., 'LineWidth', params.plot.lw);
-        % params.pdf_gauss{i} = G;   % Suggestion
-        % params.pdf{i} = values;
-        % params.pdf_incr{i} = increments;
+        plot(increments, G, 'LineWidth', params.plot.lw);
+        params.pdf_gauss{i} = G;   % Suggestion
+        params.pdf{i} = values;
+        params.pdf_incr{i} = increments;
 
         % Axis labels
         if i == 3 || i == 4
