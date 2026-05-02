@@ -25,9 +25,9 @@ time_vector = (0:length(u)-1)' / params.samplingFreq;
 
 params.U = U;
 
-% Apply Taylor's frozen flow hypothesis: x = U * t
-params.x = time_vector * params.U;
-params.L = params.x(end);
+% Apply Taylor's frozen flow hypothesis: t = -x/U -> x = -t*U
+params.x = -time_vector * params.U;
+params.L = abs(params.x(end));
 
 %% --- Plot A ---
 plotA = figure();
@@ -38,7 +38,6 @@ plot(params.x, u + params.U, 'LineWidth', params.plot.lwsmall);
 
 yline(params.U, '--r', 'Mean Velocity $U$', ...
      'Interpreter', 'latex', 'fontsize', params.plot.fontSize, ...
-     'Color', 'white', ...
      'LineWidth', params.plot.lw, ...
      'LabelVerticalAlignment', 'top', 'HandleVisibility', 'off', ...
      'LabelHorizontalAlignment', 'left');
@@ -51,4 +50,5 @@ ylabel('$u_\mathrm{tot}(x)\;[m/s]$', 'Interpreter', 'latex', ...
 
 %% --- Turbulence intensity ---
 params.I = sqrt(mean(u.^2)) / params.U;
-disp(params.I)
+disp('Turbulence intensity');
+disp(params.I);
