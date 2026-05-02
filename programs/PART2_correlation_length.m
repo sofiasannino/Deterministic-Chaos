@@ -6,6 +6,8 @@ addpath("../functions/");
 
 %% --- Common setup ---
 % Define any quantity you need for this part in here
+params.fileName = 'veldata.txt';
+params.samplingFreq = 20000;
 params.plot.fontSize = 14;
 params.plot.legendFontSize = 12;
 params.plot.insetFontSize = 10;
@@ -16,7 +18,8 @@ params.plot.lwsmall = 1.2;
 
 
 %% --- Correlation length ---
-dl = 1;
+params.U = U;
+dl = params.U / params.samplingFreq;
 
 lmax_autocorr = 1000;
 Cl = autocorrelation(u, dl, lmax_autocorr);
@@ -26,10 +29,10 @@ Cl = autocorrelation(u, dl, lmax_autocorr);
 l = 0:dl:(dl*(length(Cl) - 1));
 
 % Find intersections
-Lc_idx = 1;
+Lc_idx = find(Cl <= exp(-1), 1);
 params.Lc = l(Lc_idx);
-
-warning('Make sure to set the parameters properly properly')
+disp('Lc');
+disp(params.Lc);
 
 
 %% --- Plot B ---
@@ -41,16 +44,24 @@ end
 
 plotB = figure();
 hold on; grid on;
-% plot(..., 'LineWidth', params.plot.lw);
+
+plot(l(1:lmax_idx), Cl(1:lmax_idx), 'LineWidth', params.plot.lw);
 
 xlabel('$l\;[m]$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
 ylabel('$C(l)$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
 
 % Add Lc to plots
-% xline(..., ...
-%     'Interpreter', 'latex', 'fontsize', params.plot.insetFontSize, ...
-%     'LabelVerticalAlignment', 'bottom', 'HandleVisibility', 'off');
-
+xline(params.Lc, '--r', '$L_c$', ...
+    'Interpreter', 'latex', 'fontsize', params.plot.insetFontSize, ...
+    'LabelVerticalAlignment', 'bottom', 'HandleVisibility', 'off');
 
 %% --- Integral scale ---
-warning('Compute the integral length scale');
+zero_cross_idx = find(Cl <= 0, 1);
+if isempty(zero_cross_idx)
+    zero_cross_idx = length(Cl);
+end
+
+% Compute the integral length scale using numerical integration
+params.Lint = trapz(l(1:zero_cross_idx), Cl(1:zero_cross_idx));
+disp('Lint')
+disp(params.Lint);
