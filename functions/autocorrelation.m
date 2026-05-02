@@ -26,8 +26,7 @@ function [autoCorr] = autocorrelation(velocity, dl, lmax)
     % Normalization factor is C_full(1)
     normalization = C_full(1);
     assert(round(normalization, 4) == round(mean(velocity.^2), 4));
+    fprintf('Normalization: %e\n', normalization);
+
     autoCorr = autoCorr / normalization;
-    
-    disp('Normalization');
-    disp(normalization);
 end

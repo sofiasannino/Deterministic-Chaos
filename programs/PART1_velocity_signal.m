@@ -3,7 +3,6 @@ clc;
 clear;
 addpath("../functions/");
 
-
 %% --- Common setup ---
 % Define any quantity you need for this part in here
 params.fileName = 'veldata.txt';
@@ -50,5 +49,4 @@ ylabel('$u_\mathrm{tot}(x)\;[m/s]$', 'Interpreter', 'latex', ...
 
 %% --- Turbulence intensity ---
 params.I = sqrt(mean(u.^2)) / params.U;
-disp('Turbulence intensity');
-disp(params.I);
+fprintf('Turbulence intensity: %e\n', params.I);

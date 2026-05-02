@@ -31,9 +31,7 @@ l = 0:dl:(dl*(length(Cl) - 1));
 % Find intersections
 Lc_idx = find(Cl <= exp(-1), 1);
 params.Lc = l(Lc_idx);
-disp('Lc');
-disp(params.Lc);
-
+fprintf('Lc: %e\n', params.Lc);
 
 %% --- Plot B ---
 lmax_plot = 1;
@@ -63,5 +61,4 @@ end
 
 % Compute the integral length scale using numerical integration
 params.Lint = trapz(l(1:zero_cross_idx), Cl(1:zero_cross_idx));
-disp('Lint')
-disp(params.Lint);
+fprintf('Lint: %e\n', params.Lint);
