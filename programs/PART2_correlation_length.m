@@ -45,13 +45,13 @@ end
 plotB = figure();
 hold on; grid on;
 
-plot(l(1:lmax_idx), Cl(1:lmax_idx), 'LineWidth', params.plot.lw);
+plot(-l(1:lmax_idx), Cl(1:lmax_idx), 'LineWidth', params.plot.lw);
 
 xlabel('$l\;[m]$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
 ylabel('$C(l)$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
 
 % Add Lc to plots
-xline(params.Lc, '--r', '$L_c$', ...
+xline(-params.Lc, '--r', '$-L_c$', ...
     'Interpreter', 'latex', 'fontsize', params.plot.insetFontSize, ...
     'LabelVerticalAlignment', 'bottom', 'HandleVisibility', 'off');
 
