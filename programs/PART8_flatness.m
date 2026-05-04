@@ -19,18 +19,17 @@ params.samplingFreq = 20e3;
 %Added parameters based on parts 2 and 4
 params.taylor_number=0.01124216;
 params.L_c=0.3573;
-params.eta = 0.01021656;    
+params.eta = 0.000185;    
 
 [u, U] = load_data(params.fileName, Inf);
 
 dx = abs(U) / params.samplingFreq;
 
-lmin = max(1e-3, 2*dx);
-lmax = 10;
+lmin = max(1e-4, 2*dx);
+lmax = 1000;
 
-l_S2 = logspace(log10(lmin), log10(lmax), 200);
+l_S2 = logspace(log10(lmin), log10(lmax), 200)';
 l_S3 = l_S2;
-
 
 
 
@@ -69,9 +68,8 @@ loglog(l_S2(valid_F_smooth), F_smooth(valid_F_smooth), ...
     'LineWidth', params.plot.lw, ...
     'DisplayName', '$F(l)$ (smoothed)');
 
-
-large_scale_idx = valid_F_smooth & l_S2 >= params.L_c;
-F_large_scale = median(F_smooth(large_scale_idx), 'omitnan');
+%averaging the last values of F to get and estimate for the limit
+F_large_scale = mean(F_smooth(end-5:end), 'omitnan');
 yline(F_large_scale, 'k:', ...
     'Interpreter', 'latex', ...
     'fontsize', params.plot.insetFontSize, ...
@@ -126,11 +124,14 @@ xline(params.L_c, '--b', '$L_c$', ...
 
 
 %% --- Correction to energy spectrum ---
+%NOTE: in order to obtain the correct plots for this part, it is needed to
+%rerun the script 'PART3_energy_spectrum', othrwise plotC won't avaiable.
+
 figure(plotC);
 cmap = colororder();  % Get the default colors if needed
 
 params.beta_E_exp = -51/30;
-params.bifractal_E_exp = -53/30;
+params.bifractal_E_exp = -50/30;
 
 k_pred = logspace(1, 3, 100); 
 
@@ -138,8 +139,8 @@ k_anchor = 100;   % rad/m
 [~, anchor_idx] = min(abs(k - k_anchor));
 E_anchor = Ek_smooth(anchor_idx);
 
-E_beta = E_anchor * (k_pred / k_anchor).^beta_E_exp;
-E_bifractal = E_anchor * (k_pred / k_anchor).^bifractal_E_exp;
+E_beta = E_anchor * (k_pred / k_anchor).^params.beta_E_exp;
+E_bifractal = E_anchor * (k_pred / k_anchor).^params.bifractal_E_exp;
 
 
 loglog(k_pred, E_beta, ...
@@ -148,7 +149,7 @@ loglog(k_pred, E_beta, ...
     'Color', cmap(2, :));
 loglog(k_pred, E_bifractal, ...
     'LineWidth', params.plot.lwsmall, ...
-    'DisplayName', '$\propto k^{-53/30}$ (bifrac.)', ...
+    'DisplayName', '$\propto k^{-50/30}$ (bifrac.)', ...
     'Color', cmap(3, :));
 legend('show', ...
     'Interpreter', 'latex', ...
@@ -208,7 +209,16 @@ loglog(l_pred, H_ref * (l_pred / l_ref).^H_bifractal_exp, ':', ...
     'Color', cmap(3,:), ...
     'DisplayName', 'bifractal ($\propto l^{-1/10}$)');
 
-% Large-scale theoretical value assuming distributions become gaussians
+%averaging the last values of F to get and estimate for the limit
+H_large_scale = mean(H_smooth(end-5:end), 'omitnan');
+yline(H_large_scale, 'k:', ...
+    'Interpreter', 'latex', ...
+    'fontsize', params.plot.insetFontSize, ...
+    'Label', '$H(l\rightarrow\infty)$', ...
+    'LabelHorizontalAlignment', 'left', ...
+    'DisplayName', '$H(l\rightarrow\infty)$');
+
+% Gaussian reference value.
 yline(15, 'k--', ...
     'Interpreter', 'latex', ...
     'fontsize', params.plot.insetFontSize, ...
@@ -252,8 +262,12 @@ xline(params.L_c, '--b', '$L_c$', ...
     'LabelHorizontalAlignment', 'left', ...
     'HandleVisibility', 'off');
 
-xlim([min([l_S2(:); params.eta]), max(l_S2)]);
+fprintf('Energy spectrum scalings E(k):\n');
+fprintf('  beta-model:      E(k) ~ k^(%.6f) = k^(-51/30) for D = 2.9\n', params.beta_E_exp);
+fprintf('  bifractal model: E(k) ~ k^(%.6f) = k^(-5/3)  for D = 2.9\n\n', params.bifractal_E_exp);
 
-
+fprintf('Hyper-flatness scalings H(l):\n');
+fprintf('  beta-model:      H(l) ~ l^(%.6f) = l^(-1/5)  for D = 2.9\n', H_beta_exp);
+fprintf('  bifractal model: H(l) ~ l^(%.6f) = l^(-1/10) for D = 2.9\n\n', H_bifractal_exp);
 
 

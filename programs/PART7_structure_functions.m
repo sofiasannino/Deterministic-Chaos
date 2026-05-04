@@ -161,7 +161,7 @@ xline(params.L_c, '--b', '$L_c$', ...
 
 
 %% --- Estimate ε from S2 and S3 ---
-
+C2 = 2.15;
 % K41 estimates are meaningful in the inertial range so we restrict to the interval between the Taylor scale and the integral scale.
 lambda = params.taylor_number;
 Lc = params.L_c;
@@ -184,19 +184,11 @@ epsilon_S3_local = -(5/4) * S3sm ./ lS3;
 valid_eps_S3 = inertial_S3 & isfinite(epsilon_S3_local) & ...
                (epsilon_S3_local > 0);
 
-% % If the sign convention in the increment is opposite, use the magnitude.
-% if sum(valid_eps_S3) < 3
-%     epsilon_S3_local = (5/4) * abs(S3sm) ./ lS3;
-%     valid_eps_S3 = inertial_S3 & isfinite(epsilon_S3_local) & ...
-%                    (epsilon_S3_local > 0);
-% end
+
 
 epsilon_S3 = median(epsilon_S3_local(valid_eps_S3), 'omitnan');
 
-% Estimate from S2:
-% S2(l) = C2 * epsilon^(2/3) * l^(2/3)
-% Therefore epsilon = (S2/C2)^(3/2) / l.
-C2 = 2.15;%taken from the text
+
 epsilon_S2_local = (S2sm / C2).^(3/2) ./ lS2;
 
 valid_eps_S2 = inertial_S2 & isfinite(epsilon_S2_local) & ...
@@ -205,7 +197,7 @@ valid_eps_S2 = inertial_S2 & isfinite(epsilon_S2_local) & ...
 epsilon_S2 = median(epsilon_S2_local(valid_eps_S2), 'omitnan');
 
 % Outer-scale estimate from Section 1.4, for comparison.
-epsilon_outer = 2.939219; %TO BE CHECKED
+epsilon_outer = 2.939219; 
 
 fprintf('epsilon from S2:           %e m^2/s^3\n', epsilon_S2);
 fprintf('epsilon from S3:           %e m^2/s^3\n', epsilon_S3);
