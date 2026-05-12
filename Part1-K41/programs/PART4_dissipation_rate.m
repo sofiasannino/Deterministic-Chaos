@@ -25,7 +25,7 @@ u_rms = sqrt(mean(u.^2));
 
 params.epsilon = 0.5 * (u_rms^3) / L_outer;
 params.lambda = sqrt(15 * nu * (u_rms^2) / params.epsilon);
-params.eta = (nu^3 / params.epsilon)^(1/4);
+params.eta = (nu^3 / params.epsilon)^(1/4)
 params.Re_lambda = (u_rms * params.lambda) / nu;
 params.Re_outer = (u_rms * L_outer) / nu;
 

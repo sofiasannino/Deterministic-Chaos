@@ -131,7 +131,7 @@ figure(plotC);
 cmap = colororder();  % Get the default colors if needed
 
 params.beta_E_exp = -51/30;
-params.bifractal_E_exp = -50/30;
+params.bifractal_E_exp = -53/30;
 
 k_pred = logspace(1, 3, 100); 
 
