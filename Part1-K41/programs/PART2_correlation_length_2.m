@@ -16,13 +16,12 @@ params.plot.lwsmall = 1.2;
 
 [u, U] = load_data(params.fileName, Inf);
 params.U = U;
-params.x = U./params.samplingFreq; % dl translation in space for every sample: dl = tau * U
-xx = (0:length(u)-1)' * params.x;
-params.L = xx(end); % length of the interval on axis x
-
+params.dx = U./params.samplingFreq; % dx translation in space for every sample: dx = tau * U = U/f
+params.x = (0:length(u)-1)' * params.dx; % define x coordinates
+params.L = params.x(end); % length of the interval on axis x
 
 %% --- Correlation length ---
-dl = params.x;
+dl = params.dx;
 
 lmax_autocorr = 1000;
 Cl = autocorrelation(u, dl, lmax_autocorr);
@@ -53,7 +52,7 @@ xlabel('$l\;[m]$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
 ylabel('$C(l)$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
 
 % Add Lc to plots
-xline(params.Lc, '--r', 'Correlation length L_c', ...
+xline(params.Lc, '--r', 'Correlation length Lc', ...
     'Interpreter', 'latex', 'fontsize', params.plot.insetFontSize, ...
     'LabelVerticalAlignment', 'bottom', 'HandleVisibility', 'off');
 

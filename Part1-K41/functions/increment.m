@@ -6,8 +6,6 @@ function [x, d] = increment(u, l, f, U)
     % x: vector of lengths [m]
     % d: vector of velocity increments [m/s]
     
-    N = length(u);
-
     dx = U / f;
 
     lag = round(l/dx);

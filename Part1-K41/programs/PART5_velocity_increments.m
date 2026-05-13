@@ -27,8 +27,9 @@ maxx_plot = 1600;
 for i = 1:length(lincr)  % loop over l values     
     [x, d] = increment(u, lincr(i), params.samplingFreq, U);
     x = x(x <= maxx_plot);
+    d = d(x <= maxx_plot);
     subplot(2, 2, i)
-    plot(x, d(1:length(x)), 'LineWidth', params.plot.lwsmall);
+    plot(x, d, 'LineWidth', params.plot.lwsmall);
     miny = min(d);
     maxy = max(d);
     if abs(miny) > maxy

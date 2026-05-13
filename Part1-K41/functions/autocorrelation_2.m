@@ -1,4 +1,4 @@
-function [autoCorr] = autocorrelation(velocity, dl, lmax)
+function [autoCorr] = autocorrelation_2(velocity, dl, lmax)
     % Velocity assumed to be a 1D vector field, each sample being 
     % spatially separated by a constant dl
     % Definition of the non-normalized auto correlation function is

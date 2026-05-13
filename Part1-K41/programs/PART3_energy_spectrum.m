@@ -23,12 +23,13 @@ l = (0:N-1)' * dl;
 L = l(N);
 params.N = N;
 params.L = L;
+Lc = 3.57303e-01;
 
 %% --- Energy spectrum ---
 % Use the analytically derived normalization prefactor
 spectrumNorm = (2 * pi * params.N^2) / params.L;
-Ek = spectral_energy_density(u) / spectrumNorm;
-fprintf('Spectrum norm: %e\n', spectrumNorm);
+Ek = spectral_energy_density(u./sqrt(spectrumNorm));
+fprintf('Prefactor: %e\n', 1./spectrumNorm);
 
 % Define wave numbers k
 dk = 2 * pi / params.L;
@@ -53,15 +54,15 @@ loglog(k, Ek_smooth, 'DisplayName', '$E(k)$ (smoothed)', ...
 
 % Add K41 scaling predictions
 % K41 predicts E(k) scales as k^{-5/3} in the inertial subrange
-k_anchor_idx = floor(length(k)/2000); 
+k_anchor_idx = floor(length(k)/3000); 
 k41_k = [k(k_anchor_idx), k(floor(length(k)/10))];
 k41_E = Ek_smooth(k_anchor_idx) * (k41_k / k41_k(1)).^(-5/3);
 loglog(k41_k, k41_E, 'k--', 'LineWidth', params.plot.lw, 'DisplayName', 'K41 ($k^{-5/3}$)');
 
 % Graphical estimates for integral and Kolmogorov length scales
 keta_e = 615;
-kint_e = 3;
-kLc = 2 * pi / 0.3573;
+kint_e = 2;
+kLc = 2 * pi / Lc;
 
 params.eta_e = 2 * pi / keta_e;
 fprintf('Eta_e: %e\n', params.eta_e);
