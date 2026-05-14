@@ -86,3 +86,34 @@ xlabel('Energy Production Rate (P)');
 ylabel('Energy Dissipation Rate (D)');
 title('Panel 4: 2D Phase Portrait');
 legend('Location', 'best');
+
+%% Extra: compute divergence timescale
+error_norm = vecnorm(vv1 - vv2);
+
+% Plot the error
+figure('Name', sprintf('Error for nu = %g', nu));
+semilogy(tt1/nu, error_norm, 'k', 'LineWidth', 1.5);
+hold on; grid on;
+
+xlabel('Time (t / \nu)');
+ylabel('|| v_1(t) - v_2(t) ||');
+title('Divergence of perturbed trajectory');
+
+mean_state_size = mean(vecnorm(vv1));
+threshold = 0.1 * mean_state_size;
+threshold_label = '10% Mean Attractor Size';
+
+% Alternative
+% threshold = 100 * error_norm(1);
+% threshold_label = '100x Initial Error';
+
+yline(threshold, 'r--', threshold_label, 'LabelHorizontalAlignment', 'left');
+dev_idx = find(error_norm >= threshold, 1);
+
+if ~isempty(dev_idx)
+    t_deviation = tt1(dev_idx) / nu;
+    plot(t_deviation, error_norm(dev_idx), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
+    fprintf('For nu = %g, significant deviation occurs at t/nu approx: %.1f\n', nu, t_deviation);
+else
+    fprintf('For nu = %g, no significant deviation occurred (system is stable).\n', nu);
+end
