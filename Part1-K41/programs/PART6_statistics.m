@@ -88,7 +88,7 @@ for scale = 1:2  % 1: semilogy, 2: linear
 
 end
 
-%% Inspecting if H2 stands 
+%% Inspecting if H2 stands - EXTRA  
 h_exp = zeros(length(lincr)-1, 5);
 
 for i = 1:(length(lincr)-1)

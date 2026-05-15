@@ -34,8 +34,8 @@ params.Re_outer = (u_rms * L_outer) / nu;
 u_eta = (params.epsilon * nu)^(1/4);
 params.Re_eta = (u_eta * params.eta) / nu;
 
-klambda = 2 * pi / params.lambda;
-keta = 2*pi / params.eta;
+klambda = (2*pi) / params.lambda;
+keta = (2*pi) / params.eta;
 
 fprintf('Dissipation rate (epsilon): %e m^2/s^3\n', params.epsilon);
 fprintf('Taylor length scale (lambda): %e m\n', params.lambda);

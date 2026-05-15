@@ -13,6 +13,6 @@
 
 function [x,k] = domain(N)
     dx = 1./N;
-    x = linspace(0,1.-dx,N)' - 1./2;
+    x = linspace(0,1.-dx,N)' - 1./2; %[0.5, 0.5)
     k = (2 * pi)*[0:N/2-1 0 -N/2+1:-1]';
 end

@@ -26,18 +26,25 @@ maxx_plot = 1600;
 
 for i = 1:length(lincr)  % loop over l values     
     [x, d] = increment(u, lincr(i), params.samplingFreq, U);
-    x = x(x <= maxx_plot);
-    d = d(x <= maxx_plot);
+
+    % with the convention x = -Ut,display the interval [-maxx_plot, 0]
+    plot_idx = (x >= -maxx_plot) & (x <= 0);
+    x_plot = x(plot_idx);
+    d_plot = d(plot_idx);
+
     subplot(2, 2, i)
-    plot(x, d, 'LineWidth', params.plot.lwsmall);
-    miny = min(d);
-    maxy = max(d);
+    plot(x_plot, d_plot, 'LineWidth', params.plot.lwsmall);
+
+    miny = min(d_plot);
+    maxy = max(d_plot);
+
     if abs(miny) > maxy
         maxy = abs(miny);
     elseif maxy > abs(miny)
         miny = -maxy;
     end
-    xlim([0 maxx_plot]);
+
+    xlim([-maxx_plot 0]);
     ylim([miny maxy]);
     yline(0, '-', 'HandleVisibility', 'off');
 
