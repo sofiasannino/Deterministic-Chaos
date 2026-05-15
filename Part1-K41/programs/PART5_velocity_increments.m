@@ -28,7 +28,7 @@ for i = 1:length(lincr)  % loop over l values
     [x, d] = increment(u, lincr(i), params.samplingFreq, U);
 
     % with the convention x = -Ut,display the interval [-maxx_plot, 0]
-
+    
     plot_idx = (x >= -maxx_plot) & (x <= 0);
     x_plot = x(plot_idx);
     d_plot = d(plot_idx);
