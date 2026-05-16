@@ -2,7 +2,13 @@
 clc;
 clear;
 addpath("../functions/");
+addpath("../data/")
+%% --- Output folder for plots ---
+params.plot.folder = "plots";
 
+if ~exist(params.plot.folder, "dir")
+    mkdir(params.plot.folder);
+end
 %% --- Common setup ---
 % Define any quantity you need for this part in here
 params.fileName = 'veldata.txt';
@@ -10,30 +16,33 @@ params.fileName = 'veldata.txt';
 % Sampling frequency is 20 kHz
 params.samplingFreq = 20000;
 
+% Plot parameters
 params.plot.fontSize = 14;
 params.plot.legendFontSize = 12;
 params.plot.insetFontSize = 10;
 params.plot.lw = 1.5;
 params.plot.lwsmall = 1.2;
 
+% load data
 [u, U] = load_data(params.fileName, Inf);
 
 %% --- Frozen flow hypothesis ---
 % Create the time vector based on the number of samples and the sampling frequency
-time_vector = (0:length(u)-1)' / params.samplingFreq;
+time_vector = (0:length(u)-1)' / params.samplingFreq; %tau
 
-params.U = U;
+params.U = U; %mean velocity
 
 % Apply Taylor's frozen flow hypothesis: t = -x/U -> x = -t*U
-params.x = -time_vector * params.U;
-params.L = abs(params.x(end));
+params.x = -time_vector * params.U; % x values 
+params.L = abs(params.x(end)); %length 
+
 
 %% --- Plot A ---
 plotA = figure();
 hold on; grid on;
 
-% Plot total velocity u_tot(x) against x
-plot(params.x, u + params.U, 'LineWidth', params.plot.lwsmall);
+% Plot total velocity u_tot(x) = u + U against x
+plot( params.x , u + params.U, 'LineWidth', params.plot.lwsmall);
 
 yline(params.U, '--r', 'Mean Velocity $U$', ...
      'Interpreter', 'latex', 'fontsize', params.plot.fontSize, ...
@@ -46,7 +55,10 @@ xlabel('$x\;[m]$', 'Interpreter', 'latex', ...
 ylabel('$u_\mathrm{tot}(x)\;[m/s]$', 'Interpreter', 'latex', ...
     'FontSize', params.plot.fontSize);
 
-
+% Save plot automatically
+exportgraphics(plotA, fullfile(params.plot.folder, "plotA.png"), ...
+    "Resolution", 300);
 %% --- Turbulence intensity ---
 params.I = sqrt(mean(u.^2)) / params.U;
+fprintf('Mean velocity: %e\n', params.U);
 fprintf('Turbulence intensity: %e\n', params.I);

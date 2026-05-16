@@ -3,7 +3,12 @@ clc;
 clear;
 addpath("../functions/");
 
+%% --- Output folder for plots ---
+params.plot.folder = "plots";
 
+if ~exist(params.plot.folder, "dir")
+    mkdir(params.plot.folder);
+end
 %% --- Common setup ---
 % Define any quantity you need for this part in here
 params.plot.fontSize = 14;
@@ -67,3 +72,6 @@ for i = 1:length(lincr)  % loop over l values
     % print mean increment (should be ~0)
     disp(['l = ', num2str(lincr(i)), ': mean = ', num2str(mean(d))]);
 end
+
+exportgraphics(plotD, fullfile(params.plot.folder, "plotD.png"), ...
+    "Resolution", 300);

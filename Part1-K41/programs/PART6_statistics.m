@@ -3,7 +3,12 @@ clc;
 clear;
 addpath("../functions/");
 
+%% --- Output folder for plots ---
+params.plot.folder = "plots";
 
+if ~exist(params.plot.folder, "dir")
+    mkdir(params.plot.folder);
+end
 %% --- Common setup ---
 % Define any quantity you need for this part in here
 params.plot.fontSize = 14;
@@ -17,7 +22,6 @@ params.samplingFreq = 20e3; %
 [u, U] = load_data(params.fileName, Inf);
 
 lincr = [1e-3, 1e-2, 1e-1, 10]; %
-warning('Set the length increments and other relvant parameters');
 
 
 %% --- Loop over dataset ---
@@ -30,7 +34,9 @@ params.pdf_incr = cell(1, length(lincr));
 histNbins = 100;
 
 for scale = 1:2  % 1: semilogy, 2: linear
-    if (scale == 2)
+    if scale == 1
+        figure(plotE1);
+    else
         figure(plotE2);
     end
     for i = 1:length(lincr)
@@ -88,3 +94,10 @@ for scale = 1:2  % 1: semilogy, 2: linear
     end
 
 end
+
+
+% Save plot automatically
+exportgraphics(plotE1, fullfile(params.plot.folder, "plotE1.png"), ...
+    "Resolution", 300);
+exportgraphics(plotE1, fullfile(params.plot.folder, "plotE1.png"), ...
+    "Resolution", 300);
