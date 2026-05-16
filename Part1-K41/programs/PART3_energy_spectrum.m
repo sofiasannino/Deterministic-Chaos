@@ -3,7 +3,12 @@ clc;
 clear;
 addpath("../functions/");
 
+%% --- Output folder for plots ---
+params.plot.folder = "plots";
 
+if ~exist(params.plot.folder, "dir")
+    mkdir(params.plot.folder);
+end
 %% --- Common setup ---
 % Define any quantity you need for this part in here
 params.fileName = 'veldata.txt';
@@ -20,19 +25,27 @@ params.U = U;
 dl = params.U / params.samplingFreq;
 N = length(u);
 l = (0:N-1)' * dl;
-L = l(N);
 params.N = N;
+dx = abs(params.U) / params.samplingFreq;
+L = N * dx;
 params.L = L;
+
 
 %% --- Energy spectrum ---
 % Use the analytically derived normalization prefactor
 spectrumNorm = (2 * pi * params.N^2) / params.L;
 Ek = spectral_energy_density(u) / spectrumNorm;
+Ek = Ek(:);
 fprintf('Spectrum norm: %e\n', spectrumNorm);
+fprintf('Value for the table, analytical prefactor: L/(2pi N^2)\n');
+fprintf('Value for the table, numerical prefactor: %e\n', 1/spectrumNorm);
 
 % Define wave numbers k
-dk = 2 * pi / params.L;
-k = (0:(N/2))' * dk;
+dk = 2*pi / L;
+k = (0:(N/2))' * dk; % These are angular wavenumbers, coherent with the Fourier convention
+% exp(-ikx) used in the assignment. Therefore, a spectral feature at k
+% corresponds to the physical wavelength l = 2*pi/k. The relation k ~ 1/l
+% is only an order-of-magnitude scaling convention.
 
 % Define E(k), k > 0
 Ek(2:end-1) = 2 * Ek(2:end-1); 
@@ -44,7 +57,7 @@ Ek = Ek(2:end);
 Ek_smooth = smoothdata(Ek, 'movmean', 500);
 
 %% Plot C
-plotC = figure();
+plotC = figure("Name", "PlotC");
 loglog(k, Ek, 'Color', [0.8 0.8 0.8], 'DisplayName', '$E(k)$ (raw)');
 hold on; grid on;
 
@@ -60,7 +73,7 @@ loglog(k41_k, k41_E, 'k--', 'LineWidth', params.plot.lw, 'DisplayName', 'K41 ($k
 
 % Graphical estimates for integral and Kolmogorov length scales
 keta_e = 615;
-kint_e = 3;
+kint_e = 5;
 kLc = 2 * pi / 0.3573;
 
 params.eta_e = 2 * pi / keta_e;
@@ -83,9 +96,10 @@ xline(kint_e, '--r', '$k_{int}$', ...
     
 xline(keta_e, '--g', '$k_{\eta}$', ...
     'Interpreter', 'latex', 'fontsize', params.plot.insetFontSize, ...
-    'Color', 'red', ...
+    'Color', 'green', ...
     'LabelVerticalAlignment', 'bottom', ...
-    'LabelHorizontalAlignment', 'left','HandleVisibility', 'off');
+    'LabelHorizontalAlignment', 'left', ...
+    'HandleVisibility', 'off');
 
 xline(kLc, '--g', '$k_{L_c}$', ...
     'Interpreter', 'latex', 'fontsize', params.plot.insetFontSize, ...
@@ -93,9 +107,86 @@ xline(kLc, '--g', '$k_{L_c}$', ...
     'LabelVerticalAlignment', 'bottom', ...
     'LabelHorizontalAlignment', 'left','HandleVisibility', 'off');
 
+% Save Plot C as image and MATLAB figure to be reused later in PART 4 and 8
+plotC_png = fullfile(params.plot.folder, "plotC.png");
+plotC_fig = fullfile(params.plot.folder, "plotC.fig");
+
+exportgraphics(plotC, plotC_png, "Resolution", 300);
+savefig(plotC, plotC_fig);
+% Save data to be used in PART8
+save(fullfile(params.plot.folder, "plotC_data.mat"), ...
+    "k", "Ek", "Ek_smooth");
+
 %% Parsival's theorem
 % 1/2 <u^2> = int E(k) dk
 LHS = 0.5 * mean(u.^2);
-RHS = trapz(k, Ek);
+RHS = sum(Ek) * dk;
 rel_error = abs(LHS - RHS) / LHS;
 fprintf('Relative Error: %e\n', rel_error);
+
+%% Additional plot to better estimate K41 scales
+plotC_comp = figure("Name", "Compensated spectrum");
+
+loglog(k, k.^(5/3).*Ek_smooth, ...
+    'LineWidth', params.plot.lw, ...
+    'DisplayName', '$k^{5/3}E(k)$');
+hold on; grid on;
+
+xlabel('$k\;[m^{-1}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$k^{5/3}E(k)$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+title('Compensated spectrum', 'Interpreter', 'latex');
+
+% --- K41 prediction on compensated spectrum ---
+% If E(k) ~ k^(-5/3), then k^(5/3)E(k) is approximately constant.
+k41_comp_idx_1 = floor(length(k)/2000);
+k41_comp_idx_2 = floor(length(k)/10);
+
+k41_comp_k = [k(k41_comp_idx_1), k(k41_comp_idx_2)];
+k41_comp_level = k(k41_comp_idx_1)^(5/3) * Ek_smooth(k41_comp_idx_1);
+
+loglog(k41_comp_k, ...
+       k41_comp_level * [1 1], ...
+       'k--', ...
+       'LineWidth', params.plot.lw, ...
+       'DisplayName', 'K41 plateau');
+
+% --- Characteristic spectral scales ---
+
+xline(kint_e, '--r', '$k_{\mathrm{int},e}$', ...
+    'Interpreter', 'latex', ...
+    'FontSize', params.plot.insetFontSize, ...
+    'Color', 'red', ...
+    'LabelVerticalAlignment', 'bottom', ...
+    'LabelHorizontalAlignment', 'left', ...
+    'HandleVisibility', 'off');
+
+xline(keta_e, '--g', '$k_{\eta,e}$', ...
+    'Interpreter', 'latex', ...
+    'FontSize', params.plot.insetFontSize, ...
+    'Color', 'green', ...
+    'LabelVerticalAlignment', 'bottom', ...
+    'LabelHorizontalAlignment', 'left', ...
+    'HandleVisibility', 'off');
+
+xline(kLc, '--b', '$k_{L_c}=2\pi/L_c$', ...
+    'Interpreter', 'latex', ...
+    'FontSize', params.plot.insetFontSize, ...
+    'Color', 'blue', ...
+    'LabelVerticalAlignment', 'bottom', ...
+    'LabelHorizontalAlignment', 'left', ...
+    'HandleVisibility', 'off');
+
+legend('Interpreter', 'latex', ...
+    'FontSize', params.plot.legendFontSize, ...
+    'Location', 'best');
+
+%% --- Save compensated spectrum ---
+exportgraphics(plotC_comp, ...
+    fullfile(params.plot.folder, "plotC_compensated.png"), ...
+    "Resolution", 300);
+
+
