@@ -1,11 +1,23 @@
-close all; clear; clc
+%% --- Move to this file's folder ---
+cd(fileparts(mfilename('fullpath')));
+
+%% --- Clear workspace ---
+clc;
+clear;
+addpath("../functions/");
+
+%% --- Output folder for plots ---
+params.plot.folder = "../plots";
+
+if ~exist(params.plot.folder, "dir")
+    mkdir(params.plot.folder);
+end
 
 %% inputs
-addpath('../functions/')       % folder containing functions
 N = 128;                       % spatial resolution
 
 nu_values = [1e-2, 1e-3, 8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4];
-nu = nu_values(3);             % hyperviscosity parameter
+nu = nu_values(5);             % hyperviscosity parameter
 
 T_trans = 1000 * nu;           % transient time period
 T_int = 250 * nu;              % analysis time period
@@ -44,7 +56,7 @@ for i = 1:length(tt1)
 end
 
 %% Steps 2, 3, 4, 5: Plotting A(nu)
-figure('Position', [100, 100, 1200, 800], 'Name', sprintf('KSE Dynamics for nu = %g', nu));
+plotA = figure('Position', [100, 100, 1200, 800], 'Name', sprintf('KSE Dynamics for nu = %g', nu));
 
 % Panel 1: Space-time contour of u1(x,t)
 subplot(2, 2, 1);
@@ -117,3 +129,8 @@ if ~isempty(dev_idx)
 else
     fprintf('For nu = %g, no significant deviation occurred (system is stable).\n', nu);
 end
+
+% Save the plot automatically
+name = "PlotA" + nu + ".png";
+exportgraphics(plotA, fullfile(params.plot.folder, name), ...
+    "Resolution", 300);

@@ -1,7 +1,19 @@
-close all; clear; clc
+%% --- Move to this file's folder ---
+cd(fileparts(mfilename('fullpath')));
+
+%% --- Clear workspace ---
+clc;
+clear;
+addpath("../functions/");
+
+%% --- Output folder for plots ---
+params.plot.folder = "../plots";
+
+if ~exist(params.plot.folder, "dir")
+    mkdir(params.plot.folder);
+end
 
 %% inputs
-addpath('../functions/')       % folder containing functions
 nu_values = [1e-2, 1e-3, 8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4]; %viscosity values 
 nu = nu_values(2);             % hyperviscosity parameter
 N = 128;                       % spatial resolution
