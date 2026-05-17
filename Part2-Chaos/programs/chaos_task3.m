@@ -1,7 +1,19 @@
-close all; clear; clc
+%% --- Move to this file's folder ---
+cd(fileparts(mfilename('fullpath')));
+
+%% --- Clear workspace ---
+clc;
+clear;
+addpath("../functions/");
+
+%% --- Output folder for plots ---
+params.plot.folder = "../plots";
+
+if ~exist(params.plot.folder, "dir")
+    mkdir(params.plot.folder);
+end
 
 %% inputs
-addpath('../functions/')       % folder containing functions
 N = 128;                       % spatial resolution
 epsilon = 1e-6;                % perturbation amplitude for computing J
 

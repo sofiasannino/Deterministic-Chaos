@@ -129,3 +129,7 @@ if ~isempty(dev_idx)
 else
     fprintf('For nu = %g, no significant deviation occurred (system is stable).\n', nu);
 end
+
+% Save the plot automatically
+exportgraphics(plotA, fullfile(params.plot.folder, "plotA.png"), ...
+    "Resolution", 300);
