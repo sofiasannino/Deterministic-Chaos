@@ -7,7 +7,7 @@ clear;
 addpath("../functions/");
 
 %% --- Output folder for plots ---
-params.plot.folder = "../plots";
+params.plot.folder = "../plots/part1";
 
 if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
