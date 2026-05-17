@@ -50,8 +50,8 @@ params.Re_eta = (u_eta * params.eta) / nu;
 
 % Using k = 2*pi/l would instead mark the Fourier mode whose wavelength is
 % exactly l, which is not the interpretation used here
-klambda = 1 / params.lambda;
-keta    = 1 / params.eta;
+klambda = 2 * pi / params.lambda;
+keta = 1 / params.eta;
 
 fprintf('Dissipation rate (epsilon): %e\n', params.epsilon);
 fprintf('Taylor length scale (lambda): %e\n', params.lambda);
