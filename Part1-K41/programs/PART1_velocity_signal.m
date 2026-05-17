@@ -27,15 +27,15 @@ params.plot.insetFontSize = 10;
 params.plot.lw = 1.5;
 params.plot.lwsmall = 1.2;
 
-% load data
+% Load data
 [u, U] = load_data(params.fileName, Inf);
+
+% Mean velocity
+params.U = U;
 
 %% --- Frozen flow hypothesis ---
 % Create the time vector based on the number of samples and the sampling frequency
 time_vector = (0:length(u)-1)' / params.samplingFreq;
-
-% Mean velocity
-params.U = U;
 
 % Apply Taylor's frozen flow hypothesis: t = -x/U -> x = -t*U
 % x values
