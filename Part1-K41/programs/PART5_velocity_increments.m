@@ -19,22 +19,22 @@ params.plot.insetFontSize = 10;
 params.plot.lw = 1.5;
 params.plot.lwsmall = 1.2;
 
-params.fileName = 'veldata.txt'; %
-params.samplingFreq = 20e3;  %
+params.fileName = 'veldata.txt';
+params.samplingFreq = 20e3;
 
 [u, U] = load_data(params.fileName, Inf);
 
-lincr = [1e-3, 1e-2, 1e-1, 10]; %
+lincr = [1e-3, 1e-2, 1e-1, 10];
 lincr_labels = {'1 mm', '1 cm', '10 cm', '10 m'};
 
 %% --- Loop through dataset ---
 plotD = figure();
 maxx_plot = 1600;
 
-for i = 1:length(lincr)  % loop over l values     
+for i = 1:length(lincr)   
     [x, d] = increment(u, lincr(i), params.samplingFreq, U);
 
-    % With the convention x = -Ut, we display the interval [-maxx_plot, 0].
+    % With the convention x = -Ut, we display the interval [-maxx_plot, 0]
     plot_idx = (x >= -maxx_plot) & (x <= 0);
     x_plot = x(plot_idx);
     d_plot = d(plot_idx);
@@ -71,7 +71,7 @@ for i = 1:length(lincr)  % loop over l values
     title(subplot_title, 'Interpreter', 'latex', 'fontsize', ...
         params.plot.legendFontSize);
 
-    % print mean increment (should be ~0)
+    % Print mean increment (should be ~0)
     disp(['l = ', num2str(lincr(i)), ': mean = ', num2str(mean(d))]);
 end
 
