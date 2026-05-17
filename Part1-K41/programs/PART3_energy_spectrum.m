@@ -1,16 +1,19 @@
+%% --- Move to this file's folder ---
+cd(fileparts(mfilename('fullpath')));
+
 %% --- Clear workspace ---
 clc;
 clear;
 addpath("../functions/");
 
 %% --- Output folder for plots ---
-params.plot.folder = "plots";
+params.plot.folder = "../plots";
 
 if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
+
 %% --- Common setup ---
-% Define any quantity you need for this part in here
 params.fileName = 'veldata.txt';
 params.samplingFreq = 20000;
 params.plot.fontSize = 14;
@@ -30,22 +33,23 @@ dx = abs(params.U) / params.samplingFreq;
 L = N * dx;
 params.L = L;
 
-
 %% --- Energy spectrum ---
 % Use the analytically derived normalization prefactor
 spectrumNorm = (2 * pi * params.N^2) / params.L;
 Ek = spectral_energy_density(u) / spectrumNorm;
 Ek = Ek(:);
 fprintf('Spectrum norm: %e\n', spectrumNorm);
-fprintf('Value for the table, analytical prefactor: L/(2pi N^2)\n');
+fprintf('Value for the table, analytical prefactor: L/(2 pi N^2)\n');
 fprintf('Value for the table, numerical prefactor: %e\n', 1/spectrumNorm);
 
 % Define wave numbers k
+% These are angular wavenumbers, coherent with the Fourier convention
 dk = 2*pi / L;
-k = (0:(N/2))' * dk; % These are angular wavenumbers, coherent with the Fourier convention
+k = (0:(N/2))' * dk;
+
 % exp(-ikx) used in the assignment. Therefore, a spectral feature at k
 % corresponds to the physical wavelength l = 2*pi/k. The relation k ~ 1/l
-% is only an order-of-magnitude scaling convention.
+% is only an order-of-magnitude scaling convention
 
 % Define E(k), k > 0
 Ek(2:end-1) = 2 * Ek(2:end-1); 
@@ -96,7 +100,7 @@ xline(kint_e, '--r', '$k_{int}$', ...
     
 xline(keta_e, '--g', '$k_{\eta}$', ...
     'Interpreter', 'latex', 'fontsize', params.plot.insetFontSize, ...
-    'Color', 'green', ...
+    'Color', 'magenta', ...
     'LabelVerticalAlignment', 'bottom', ...
     'LabelHorizontalAlignment', 'left', ...
     'HandleVisibility', 'off');
@@ -113,6 +117,7 @@ plotC_fig = fullfile(params.plot.folder, "plotC.fig");
 
 exportgraphics(plotC, plotC_png, "Resolution", 300);
 savefig(plotC, plotC_fig);
+
 % Save data to be used in PART8
 save(fullfile(params.plot.folder, "plotC_data.mat"), ...
     "k", "Ek", "Ek_smooth");
@@ -130,6 +135,7 @@ plotC_comp = figure("Name", "Compensated spectrum");
 loglog(k, k.^(5/3).*Ek_smooth, ...
     'LineWidth', params.plot.lw, ...
     'DisplayName', '$k^{5/3}E(k)$');
+
 hold on; grid on;
 
 xlabel('$k\;[m^{-1}]$', 'Interpreter', 'latex', ...
@@ -141,7 +147,7 @@ ylabel('$k^{5/3}E(k)$', 'Interpreter', 'latex', ...
 title('Compensated spectrum', 'Interpreter', 'latex');
 
 % --- K41 prediction on compensated spectrum ---
-% If E(k) ~ k^(-5/3), then k^(5/3)E(k) is approximately constant.
+% If E(k) ~ k^(-5/3), then k^(5/3)E(k) is approximately constant
 k41_comp_idx_1 = floor(length(k)/2000);
 k41_comp_idx_2 = floor(length(k)/10);
 
@@ -167,7 +173,7 @@ xline(kint_e, '--r', '$k_{\mathrm{int},e}$', ...
 xline(keta_e, '--g', '$k_{\eta,e}$', ...
     'Interpreter', 'latex', ...
     'FontSize', params.plot.insetFontSize, ...
-    'Color', 'green', ...
+    'Color', 'magenta', ...
     'LabelVerticalAlignment', 'bottom', ...
     'LabelHorizontalAlignment', 'left', ...
     'HandleVisibility', 'off');
@@ -182,7 +188,7 @@ xline(kLc, '--b', '$k_{L_c}=2\pi/L_c$', ...
 
 legend('Interpreter', 'latex', ...
     'FontSize', params.plot.legendFontSize, ...
-    'Location', 'best');
+    'Location', 'northwest');
 
 %% --- Save compensated spectrum ---
 exportgraphics(plotC_comp, ...

@@ -1,15 +1,17 @@
+%% --- Move to this file's folder ---
+cd(fileparts(mfilename('fullpath')));
+
 %% --- Clear workspace ---
 clc;
 addpath("../functions/");
 
 %% --- Output folder for plots ---
-params.plot.folder = "plots";
+params.plot.folder = "../plots";
 
 if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
 %% --- Common setup ---
-% Define any quantity you need for this part in here
 params.fileName = 'veldata.txt';
 params.Lc = 0.3573;
 params.plot.fontSize = 14;
