@@ -57,6 +57,7 @@ fprintf('Dissipation rate (epsilon): %e\n', params.epsilon);
 fprintf('Taylor length scale (lambda): %e\n', params.lambda);
 fprintf('Taylor Reynolds number (Re_lambda): %.2f\n', params.Re_lambda);
 fprintf('Outer Reynolds number (Re_outer): %.2f\n', params.Re_outer);
+fprintf('Kolmogorov length scale (eta): %e\n', params.eta);
 fprintf('Kolmogorov Reynolds number (Re_eta): %.2f\n', params.Re_eta);
 
 %% --- Add lambda and eta scales to Plot C ---

@@ -10,15 +10,14 @@ function [x, d] = increment(u, l, f, U)
 
     % Convention: consistently with Part 1, we use Taylor's hypothesis as
     % x = - U t. Therefore, increasing the time index corresponds to more
-    % negative x values.
+    % negative x values
     dx = abs(U) / f;
 
     lag = round(l/dx);
 
     % With x_i = -(i-1)dx, the point x+l corresponds to an earlier index.
-    % Therefore this implements delta u_parallel(x,l) = u(x+l) - u(x).
+    % Therefore this implements delta u_parallel(x,l) = u(x+l) - u(x)
     d = u(1:end-lag) - u(1+lag:end);
 
     x = -((lag):(N-1)) * dx;
-
 end

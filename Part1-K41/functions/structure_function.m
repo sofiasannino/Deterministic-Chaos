@@ -6,37 +6,33 @@ function S = structure_function(u, lvec, f, U, n)
     % n    : order of the structure function [-]
     % S    : vector of the structure function [m^n/s^n]
 
-    % We have a time signal taken at a fixed point r_probe. It is interpreted as a spatial signal through Taylor's
-    % frozen-flow hypothesis using the following relation x = -U t. Therefore, increasing the time index corresponds
+    % We have a time signal taken at a fixed point r_probe. It is
+    % interpreted as a spatial signal through Taylor's
+    % frozen-flow hypothesis using x = -U t.
+    % Therefore, increasing the time index corresponds
     % to moving toward smaller x.
-    %
+    
     % We furthermore assume isotropy of the structure function, meaning that
-    % the difference in velocities depend only on the modulus of l. This
+    % the difference in velocities depends only on the modulus of l. This
     % allows us to take the vectorial increment l in the direction of flow
-    %(where we can use Taylor's hp. to estimate u(r_probe+l) ).
-    %
-    % The final assumption we need to make is that of Ergodicity. We
+    % (where we can use Taylor's hp. to estimate u(r_probe+l)).
+    
+    % The final assumption we need to make is that of ergodicity. We
     % calculate what should rigorously be statistical means as time
     % averages instead.
-    %
+    
     % With this convention, u(j+Delta j) corresponds to u(x-l).
-    % Q1.7.1:
-    %
-    %        delta u_parallel(x,l) = u(x+l) - u(x),
-    %
+    % delta u_parallel(x,l) = u(x+l) - u(x),
     % therefore
-    %
-    %        delta u_parallel = u(j) - u(j+Delta j).
-    %
-    % Since u is already the streamwise velocity fluctuation, no vector
-    % projection is required.
+    % delta u_parallel = u(j) - u(j+Delta j).
 
     u = u(:);
     lvec = lvec(:);
 
     S = NaN(length(lvec), 1);
 
-    dx = abs(U) / f;   % spatial distance between consecutive samples [m]
+    % spatial distance between consecutive samples
+    dx = abs(U) / f;
 
     for i = 1:length(lvec)
 
@@ -52,8 +48,8 @@ function S = structure_function(u, lvec, f, U, n)
             continue;
         end
 
-        % u(1:end-index_shift)     corresponds to u(x+l)
-        % u(1+index_shift:end)     corresponds to u(x)
+        % u(1:end-index_shift) corresponds to u(x+l)
+        % u(1+index_shift:end) corresponds to u(x)
         du_parallel = u(1:end-index_shift) - u(1+index_shift:end);
 
         S(i) = mean(du_parallel.^n);

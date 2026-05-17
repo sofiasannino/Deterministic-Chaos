@@ -12,19 +12,18 @@ params.plot.folder = "../plots";
 if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
+
 %% --- Common setup ---
+params.fileName = 'veldata.txt';
+params.samplingFreq = 20000;
 params.plot.fontSize = 14;
 params.plot.legendFontSize = 12;
 params.plot.insetFontSize = 10;
 params.plot.lw = 1.5;
 params.plot.lwsmall = 1.2;
 
-params.fileName = 'veldata.txt'; %
-params.samplingFreq = 20e3; %
 [u, U] = load_data(params.fileName, Inf);
-
-lincr = [1e-3, 1e-2, 1e-1, 10]; %
-
+lincr = [1e-3, 1e-2, 1e-1, 10];
 
 %% --- Loop over dataset ---
 plotE2 = figure();
@@ -35,7 +34,7 @@ params.pdf_gauss = cell(1, length(lincr));
 params.pdf_incr = cell(1, length(lincr));
 histNbins = 100;
 
-for scale = 1:2  % 1: semilogy, 2: linear
+for scale = 1:2
     if scale == 1
         figure(plotE1);
     else
@@ -97,9 +96,75 @@ for scale = 1:2  % 1: semilogy, 2: linear
 
 end
 
+% Save the plot automatically
+exportgraphics(plotE1, fullfile(params.plot.folder, "plotE1.png"), ...
+    "Resolution", 300);
+exportgraphics(plotE1, fullfile(params.plot.folder, "plotE1.png"), ...
+    "Resolution", 300);
 
-% Save plot automatically
-exportgraphics(plotE1, fullfile(params.plot.folder, "plotE1.png"), ...
-    "Resolution", 300);
-exportgraphics(plotE1, fullfile(params.plot.folder, "plotE1.png"), ...
-    "Resolution", 300);
+%% Inspecting if H2 stands
+h_exp = zeros(length(lincr)-1, 5);
+
+for i = 1:(length(lincr)-1)
+    du_i   = params.pdf_incr{i};
+    du_i_1 = params.pdf_incr{i+1};
+
+    pdf_i   = params.pdf{i};
+    pdf_i_1 = params.pdf{i+1};
+
+    % common support for interpolation
+    common = du_i_1 >= min(du_i) & du_i_1 <= max(du_i);
+
+    du_common = du_i_1(common);
+    pdf2 = pdf_i_1(common);
+
+    % interpolate pdf_i in the grid of pdf_i_1
+    pdf1 = interp1(du_i, pdf_i, du_common, 'spline');
+
+    % remove NaNs etc
+    valid = isfinite(pdf1) & isfinite(pdf2) & pdf1 > 0 & pdf2 > 0;
+
+    du_valid = du_common(valid);
+    pdf1_valid = pdf1(valid);
+    pdf2_valid = pdf2(valid);
+
+    for p = 1:5
+
+        % moments
+        m1 = trapz(du_valid, abs(du_valid).^p .* pdf1_valid);
+        m2 = trapz(du_valid, abs(du_valid).^p .* pdf2_valid);
+
+        % estimate h 
+        h_exp(i,p) = (1/p) * log10(m2/m1) / log10(lincr(i+1)/lincr(i));
+
+    end
+end
+
+plotH2 = figure();
+hold on; grid on;
+
+p_vals = 1:5;
+markers = {'-o', '-s', '-^'};
+
+labels = {
+    sprintf('$l$: %g m $\\rightarrow$ %g m', lincr(1), lincr(2)), ...
+    sprintf('$l$: %g m $\\rightarrow$ %g m', lincr(2), lincr(3)), ...
+    sprintf('$l$: %g m $\\rightarrow$ %g m', lincr(3), lincr(4))
+};
+
+% Plot the estimated h for each interval
+for i = 1:size(h_exp, 1)
+    plot(p_vals, h_exp(i,:), markers{i}, 'LineWidth', params.plot.lw, 'DisplayName', labels{i});
+end
+
+% Add the K41 theoretical prediction (h = 1/3)
+yline(1/3, 'k--', 'K41 ($h = 1/3$)', 'LineWidth', params.plot.lw, ...
+    'Interpreter', 'latex', 'LabelHorizontalAlignment', 'left', ...
+    'HandleVisibility', 'off');
+
+xlabel('Moment order $p$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
+ylabel('Estimated scaling exponent $h$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
+title('Testing K41 H2: Self-Similarity', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
+legend('Interpreter', 'latex', 'FontSize', params.plot.legendFontSize, 'Location', 'northeast');
+
+exportgraphics(plotH2, fullfile(params.plot.folder, "plotH2_check.png"), "Resolution", 300);
