@@ -40,16 +40,6 @@ params.Re_outer = (u_rms * L_outer) / nu;
 u_eta = (params.epsilon * nu)^(1/4);
 params.Re_eta = (u_eta * params.eta) / nu;
 
-% Here eta and lambda are not exact wavelengths of single Fourier modes,
-% they are characteristic turbulent length scales obtained from physical
-% estimates
-
-% When we mark them on the spectrum, we only want to indicate the approximate
-% wavenumber range where scales of size l become relevant. For this reason
-% we use the standard turbulence convention k*l ~ 1, i.e. k = 1/l
-
-% Using k = 2*pi/l would instead mark the Fourier mode whose wavelength is
-% exactly l, which is not the interpretation used here
 klambda = 2 * pi / params.lambda;
 keta = 1 / params.eta;
 
@@ -92,7 +82,7 @@ if ~isempty(plotC)
     delete(findall(ax, "Tag", "k_lambda_part4"));
     delete(findall(ax, "Tag", "k_eta_part4"));
 
-    xline(ax, klambda, '--m', '$k_{\lambda}=1/\lambda$', ...
+    xline(ax, klambda, '--m', '$k_{\lambda}=2\pi/\lambda$', ...
     'Interpreter', 'latex', ...
     'FontSize', params.plot.insetFontSize, ...
     'Color', 'black', ...
