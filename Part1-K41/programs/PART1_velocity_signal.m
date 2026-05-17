@@ -1,16 +1,20 @@
+%% --- Move to this file's folder ---
+cd(fileparts(mfilename('fullpath')));
+
 %% --- Clear workspace ---
 clc;
 clear;
 addpath("../functions/");
 addpath("../data/")
+
 %% --- Output folder for plots ---
-params.plot.folder = "plots";
+params.plot.folder = "../plots";
 
 if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
+
 %% --- Common setup ---
-% Define any quantity you need for this part in here
 params.fileName = 'veldata.txt';
 
 % Sampling frequency is 20 kHz
@@ -28,13 +32,17 @@ params.plot.lwsmall = 1.2;
 
 %% --- Frozen flow hypothesis ---
 % Create the time vector based on the number of samples and the sampling frequency
-time_vector = (0:length(u)-1)' / params.samplingFreq; %tau
+time_vector = (0:length(u)-1)' / params.samplingFreq;
 
-params.U = U; %mean velocity
+% Mean velocity
+params.U = U;
 
 % Apply Taylor's frozen flow hypothesis: t = -x/U -> x = -t*U
-params.x = -time_vector * params.U; % x values 
-params.L = abs(params.x(end)); %length 
+% x values
+params.x = -time_vector * params.U;
+
+% Length 
+params.L = abs(params.x(end));
 
 
 %% --- Plot A ---
@@ -42,7 +50,7 @@ plotA = figure();
 hold on; grid on;
 
 % Plot total velocity u_tot(x) = u + U against x
-plot( params.x , u + params.U, 'LineWidth', params.plot.lwsmall);
+plot(params.x, u + params.U, 'LineWidth', params.plot.lwsmall);
 
 yline(params.U, '--r', 'Mean Velocity $U$', ...
      'Interpreter', 'latex', 'fontsize', params.plot.fontSize, ...
@@ -52,12 +60,14 @@ yline(params.U, '--r', 'Mean Velocity $U$', ...
 
 xlabel('$x\;[m]$', 'Interpreter', 'latex', ...
     'FontSize', params.plot.fontSize);
+
 ylabel('$u_\mathrm{tot}(x)\;[m/s]$', 'Interpreter', 'latex', ...
     'FontSize', params.plot.fontSize);
 
-% Save plot automatically
+% Save the plot automatically
 exportgraphics(plotA, fullfile(params.plot.folder, "plotA.png"), ...
     "Resolution", 300);
+
 %% --- Turbulence intensity ---
 params.I = sqrt(mean(u.^2)) / params.U;
 fprintf('Mean velocity: %e\n', params.U);
