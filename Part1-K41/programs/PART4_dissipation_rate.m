@@ -40,21 +40,21 @@ params.Re_outer = (u_rms * L_outer) / nu;
 u_eta = (params.epsilon * nu)^(1/4);
 params.Re_eta = (u_eta * params.eta) / nu;
 
-% Here eta and lambda are not exact wavelengths of single Fourier modes.
-% They are characteristic turbulent length scales obtained from physical
-% estimates.
-%
+% Here eta and lambda are not exact wavelengths of single Fourier modes,
+% they are characteristic turbulent length scales obtained from physical
+% estimates
+
 % When we mark them on the spectrum, we only want to indicate the approximate
 % wavenumber range where scales of size l become relevant. For this reason
-% we use the standard turbulence convention k*l ~ 1, i.e. k = 1/l.
-%
+% we use the standard turbulence convention k*l ~ 1, i.e. k = 1/l
+
 % Using k = 2*pi/l would instead mark the Fourier mode whose wavelength is
-% exactly l, which is not the interpretation used here.
+% exactly l, which is not the interpretation used here
 klambda = 1 / params.lambda;
 keta    = 1 / params.eta;
 
-fprintf('Dissipation rate (epsilon): %e m^2/s^3\n', params.epsilon);
-fprintf('Taylor length scale (lambda): %e m\n', params.lambda);
+fprintf('Dissipation rate (epsilon): %e\n', params.epsilon);
+fprintf('Taylor length scale (lambda): %e\n', params.lambda);
 fprintf('Taylor Reynolds number (Re_lambda): %.2f\n', params.Re_lambda);
 fprintf('Outer Reynolds number (Re_outer): %.2f\n', params.Re_outer);
 fprintf('Kolmogorov Reynolds number (Re_eta): %.2f\n', params.Re_eta);
@@ -81,7 +81,7 @@ end
 if ~isempty(plotC)
     figure(plotC);
 
-    % Get axes robustly
+    % Get axes
     ax_all = findall(plotC, "Type", "axes");
     ax = ax_all(1);
 
@@ -94,16 +94,16 @@ if ~isempty(plotC)
     xline(ax, klambda, '--m', '$k_{\lambda}=1/\lambda$', ...
     'Interpreter', 'latex', ...
     'FontSize', params.plot.insetFontSize, ...
-    'Color', 'magenta', ...
+    'Color', 'black', ...
     'LabelVerticalAlignment', 'bottom', ...
     'LabelHorizontalAlignment', 'right', ...
     'HandleVisibility', 'off', ...
     'Tag', 'k_lambda_part4');
 
-xline(ax, keta, '--c', '$k_{\eta}=1/\eta$', ...
+    xline(ax, keta, '--c', '$k_{\eta}=1/\eta$', ...
     'Interpreter', 'latex', ...
     'FontSize', params.plot.insetFontSize, ...
-    'Color', 'cyan', ...
+    'Color', '#FF8C00', ...
     'LabelVerticalAlignment', 'bottom', ...
     'LabelHorizontalAlignment', 'right', ...
     'HandleVisibility', 'off', ...
