@@ -41,33 +41,64 @@ end
 
 X = zeros(N_exp,N_norm);       % allocate matrix of Lyapunov exp. history
 t = zeros(N_norm,1);           % allocate vector of normalization instances
-log_sum = zeros(N_exp, 1); % vector to keep the logarithmic sums 
+log_sum = zeros(N_exp, 1);     % vector to keep the logarithmic sums 
 
-plotB = figure();
+% Initialize the plot variables
+plotA = figure();
+axA = axes(plotA);
+
+grid(axA, 'on'); 
+hold(axA, 'on');
+xlabel(axA, 't/\nu'); 
+ylabel(axA, '$\tilde{\chi_i}$', 'Interpreter', 'latex');
+line_colors = lines(N_exp); 
+ani_lines = gobjects(N_exp, 1);
+
+for q = 1:N_exp
+    labelStr = ['$\tilde{\chi}_' num2str(q) '$'];
+    ani_lines(q) = animatedline(axA, 'LineWidth', 2, 'Color', line_colors(q,:), ...
+                                'DisplayName', labelStr);
+end
+
+legend(axA, 'Interpreter', 'latex', 'Location', 'best');
 
 for i = 1:N_norm
     J = Jacobian(v0,tau,epsilon,dt,nu,N);
     
-    % map the deviation vectors
-    V = J * Q; % n*N_exp
+    % Map the deviation vectors
+    V = J * Q;
 
-    % compute QR decomposition V = QR, update orthonormal matrix
+    % Compute QR decomposition V = QR, update orthonormal matrix
     [Q, R] = qr(V , "econ");
     
-    % update
+    % Update
     log_sum = log_sum + log(abs(diag(R)));
 
     [v0,~] = KSE_integrate(v0,tau,dt,0,nu,N);
     t(i) = i*tau;
-    
     X(:, i) = log_sum./t(i);
 
-    if rem(i,20) == 0          % update figure every 20 re-normalizations
-        clf; grid on; hold on
-        for q = 1:N_exp
-            plot(t(1:i)/nu,nu.*X(q,1:i),'LineWidth',2)
-        end
-        xlabel('t/\nu'); ylabel('$\tilde{\chi_i}$', 'Interpreter', 'latex')
-        drawnow
+    for q = 1:N_exp
+        addpoints(ani_lines(q), t(i)/nu, nu.*X(q,i));
     end
+    
+    % Render the updates to the screen every 50 steps
+    if rem(i, 50) == 0
+        drawnow limitrate;
+    end
+end
+
+% Save the plot automatically
+if isgraphics(plotA)
+    name = "Chaos2A" + nu + ".png";
+    exportgraphics(plotA, fullfile(params.plot.folder, name), "Resolution", 300);
+else
+    disp('Skipped exporting plotA (figure was closed).');
+end
+
+% Print results
+fprintf('\nFinal rescaled Lyapunov exponents (nu * chi_i) at t/nu = %.2f:\n', t(end)/nu);
+final_rescaled_X = nu .* X(:, end);
+for q = 1:N_exp
+    fprintf('  chi_%d = %g\n', q, final_rescaled_X(q));
 end
