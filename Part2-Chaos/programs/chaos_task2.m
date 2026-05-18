@@ -1,5 +1,9 @@
 %% --- Move to this file's folder ---
-cd(fileparts(mfilename('fullpath')));
+try
+    cd(fileparts(matlab.desktop.editor.getActiveFilename));
+catch
+    cd(fileparts(mfilename('fullpath')));
+end
 
 %% --- Clear workspace ---
 clc;
@@ -14,8 +18,8 @@ if ~exist(params.plot.folder, "dir")
 end
 
 %% inputs
-nu_values = [1e-2, 1e-3, 8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4]; %viscosity values 
-nu = nu_values(2);             % hyperviscosity parameter
+nu_values = [8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4]; %viscosity values 
+nu = nu_values(1);             % hyperviscosity parameter
 N = 128;                       % spatial resolution
 dt = 0.1 * nu;                 % time step size for time integration
 epsilon = 1e-6;                % perturbation amplitude for computing J
@@ -38,7 +42,9 @@ end
 X = zeros(N_exp,N_norm);       % allocate matrix of Lyapunov exp. history
 t = zeros(N_norm,1);           % allocate vector of normalization instances
 log_sum = zeros(N_exp, 1); % vector to keep the logarithmic sums 
-figure
+
+plotB = figure();
+
 for i = 1:N_norm
     J = Jacobian(v0,tau,epsilon,dt,nu,N);
     

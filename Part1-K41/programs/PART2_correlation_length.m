@@ -1,5 +1,9 @@
 %% --- Move to this file's folder ---
-cd(fileparts(mfilename('fullpath')));
+try
+    cd(fileparts(matlab.desktop.editor.getActiveFilename));
+catch
+    cd(fileparts(mfilename('fullpath')));
+end
 
 %% --- Clear workspace ---
 clc;

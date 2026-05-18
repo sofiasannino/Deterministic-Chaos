@@ -1,5 +1,9 @@
 %% --- Move to this file's folder ---
-cd(fileparts(mfilename('fullpath')));
+try
+    cd(fileparts(matlab.desktop.editor.getActiveFilename));
+catch
+    cd(fileparts(mfilename('fullpath')));
+end
 
 %% --- Clear workspace ---
 clc;
@@ -103,7 +107,7 @@ legend('Location', 'best');
 error_norm = vecnorm(vv1 - vv2);
 
 % Plot the error
-figure('Name', sprintf('Error for nu = %g', nu));
+plotB = figure('Name', sprintf('Error for nu = %g', nu));
 semilogy(tt1/nu, error_norm, 'k', 'LineWidth', 1.5);
 hold on; grid on;
 
@@ -130,7 +134,16 @@ else
     fprintf('For nu = %g, no significant deviation occurred (system is stable).\n', nu);
 end
 
-% Save the plot automatically
-name = "PlotA" + nu + ".png";
-exportgraphics(plotA, fullfile(params.plot.folder, name), ...
-    "Resolution", 300);
+% Save the plots automatically
+if isgraphics(plotA)
+    name = "Chaos1A" + nu + ".png";
+    exportgraphics(plotA, fullfile(params.plot.folder, name), "Resolution", 300);
+else
+    disp('Skipped exporting plotA (figure was closed).');
+end
+
+if isgraphics(plotB)
+    exportgraphics(plotB, fullfile(params.plot.folder, "Chaos1B.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plotB (figure was closed).');
+end
