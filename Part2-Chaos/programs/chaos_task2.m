@@ -19,7 +19,7 @@ end
 
 %% inputs
 nu_values = [8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4]; %viscosity values 
-nu = nu_values(1);             % hyperviscosity parameter
+nu = nu_values(3);             % hyperviscosity parameter
 N = 128;                       % spatial resolution
 dt = 0.1 * nu;                 % time step size for time integration
 epsilon = 1e-6;                % perturbation amplitude for computing J
@@ -102,3 +102,5 @@ final_rescaled_X = nu .* X(:, end);
 for q = 1:N_exp
     fprintf('  chi_%d = %g\n', q, final_rescaled_X(q));
 end
+
+fprintf('\nt^*_L = %.2f:\n', 1/max(X(:, end)));

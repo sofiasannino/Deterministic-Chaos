@@ -21,7 +21,7 @@ end
 N = 128;                       % spatial resolution
 
 nu_values = [1e-2, 1e-3, 8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4];
-nu = nu_values(5);             % hyperviscosity parameter
+nu = nu_values(3);             % hyperviscosity parameter
 
 T_trans = 1000 * nu;           % transient time period
 T_int = 250 * nu;              % analysis time period

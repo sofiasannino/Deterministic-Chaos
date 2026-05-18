@@ -53,7 +53,6 @@ T_trans = 1000 * nu0;
 T_int   = 250  * nu0;
 dt      = dt_vec(1);
 
-
 [v_trans,~] = KSE_integrate(v_init,T_trans,dt,0,nu0,N);
 
 % store a short trajectory on the limit cycle
@@ -98,23 +97,38 @@ for j = 1:length(t_orbit)
     u_orbit(:,j) = vector2field(v_orbit(:,j),N);
 end
 
-figure;
+plotA = figure();
 contourf(x,t_orbit,u_orbit.',40,'LineColor','none');
 xlabel('$x$','Interpreter','latex');
 ylabel('$t$','Interpreter','latex');
 title(sprintf('Limit cycle at $\\nu = %.1e$',nu0),'Interpreter','latex');
 colorbar;
 
+% Save the plot automatically
+if isgraphics(plotA)
+    exportgraphics(plotA, fullfile(params.plot.folder, "Chaos3A.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plotA (figure was closed).');
+end
+
 % 3D projection in (E,P,D)
 [E_orbit,P_orbit,D_orbit] = projection(v_orbit,N,nu0);
 
-figure;
+plotB = figure();
+grid on;
+
 plot3(E_orbit,P_orbit,D_orbit,'LineWidth',1.5);
 xlabel('$E$','Interpreter','latex');
 ylabel('$P$','Interpreter','latex');
 zlabel('$D$','Interpreter','latex');
-grid on;
 title('Limit cycle in $(E,P,D)$','Interpreter','latex');
+
+% Save the plot automatically
+if isgraphics(plotB)
+    exportgraphics(plotB, fullfile(params.plot.folder, "Chaos3B.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plotB (figure was closed).');
+end
 
 %% first continuation step
 %STEP2 of section 4.1: recompute the periodic orbit for m=20 values of nu
@@ -173,8 +187,8 @@ while i <= m + 1
 end
 
 % plot period as a function of nu
-figure;
-hold on;
+plotC = figure();
+hold on; grid on;
 
 % identify successful and unsuccessful convergence
 conv_idx = flag_vec > 0;
@@ -196,7 +210,13 @@ ylabel('$T$','Interpreter','latex');
 title('Continuation of the limit cycle period','Interpreter','latex');
 legend('continuation branch','converged','not converged', ...
     'Location','best','Interpreter','latex');
-grid on;
+
+% Save the plot automatically
+if isgraphics(plotC)
+    exportgraphics(plotC, fullfile(params.plot.folder, "Chaos3C.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plotC (figure was closed).');
+end
 
 % print values required in the report table
 selected_idx = [1 6 11 16 21];
@@ -207,9 +227,6 @@ fprintf('      nu              T              flag\n');
 for j = selected_idx
     fprintf(' %.6e    %.6e      %d\n',nu_vec(j),T_vec(j),flag_vec(j));
 end
-
-
-
 
 %% Floquet exponents
 
@@ -253,14 +270,21 @@ for i = 1:(m + 1)
 end
 
 % plot the largest non-trivial Floquet multiplier as a function of nu
-figure;
+plotD = figure();
+hold on; grid on;
+
 plot(nu_vec,lambda_vec,'o-','LineWidth',1.5);
-hold on;
 yline(1,'--','LineWidth',1.2);
 xlabel('$\nu$','Interpreter','latex');
 ylabel('$|\lambda^\ast|$','Interpreter','latex');
 title('Floquet stability of the continued limit cycle','Interpreter','latex');
-grid on;
+
+% Save the plot automatically
+if isgraphics(plotD)
+    exportgraphics(plotD, fullfile(params.plot.folder, "Chaos3D.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plotD (figure was closed).');
+end
 
 % estimate the crossing of |lambda*| = 1
 idx_cross = find((lambda_vec(1:end-1)-1).*(lambda_vec(2:end)-1) <= 0,1,'first');
