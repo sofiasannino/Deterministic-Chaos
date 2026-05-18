@@ -115,9 +115,9 @@ end
 [E_orbit,P_orbit,D_orbit] = projection(v_orbit,N,nu0);
 
 plotB = figure();
+plot3(E_orbit,P_orbit,D_orbit,'LineWidth',1.5);
 grid on;
 
-plot3(E_orbit,P_orbit,D_orbit,'LineWidth',1.5);
 xlabel('$E$','Interpreter','latex');
 ylabel('$P$','Interpreter','latex');
 zlabel('$D$','Interpreter','latex');
@@ -186,30 +186,39 @@ while i <= m + 1
 
 end
 
-% plot period as a function of nu
+% Plot period as a function of nu
 plotC = figure();
 hold on; grid on;
 
-% identify successful and unsuccessful convergence
+% Identify successful and unsuccessful convergence
 conv_idx = flag_vec > 0;
 fail_idx = flag_vec <= 0;
 
-% plot continuation curve
-plot(nu_vec,T_vec,'-','LineWidth',1.5);
+% Plot continuation curve
+p1 = plot(nu_vec,T_vec,'-','LineWidth',1.5);
+handles = p1; 
+labels = {'continuation branch'};
 
-% plot converged points
-plot(nu_vec(conv_idx),T_vec(conv_idx),'o', ...
-    'MarkerSize',6,'LineWidth',1.5);
+% Plot converged points
+if any(conv_idx)
+    p2 = plot(nu_vec(conv_idx), T_vec(conv_idx), 'o', ...
+        'MarkerSize', 6, 'LineWidth', 1.5);
+    handles(end+1) = p2;
+    labels{end+1} = 'converged';
+end
 
-% plot non-converged points
-plot(nu_vec(fail_idx),T_vec(fail_idx),'x', ...
-    'MarkerSize',8,'LineWidth',1.5);
+% Plot non-converged points
+if any(fail_idx)
+    p3 = plot(nu_vec(fail_idx), T_vec(fail_idx), 'x', ...
+        'MarkerSize', 8, 'LineWidth', 1.5);
+    handles(end+1) = p3;
+    labels{end+1} = 'not converged';
+end
 
 xlabel('$\nu$','Interpreter','latex');
 ylabel('$T$','Interpreter','latex');
 title('Continuation of the limit cycle period','Interpreter','latex');
-legend('continuation branch','converged','not converged', ...
-    'Location','best','Interpreter','latex');
+legend(handles, labels, 'Location','best','Interpreter','latex');
 
 % Save the plot automatically
 if isgraphics(plotC)
