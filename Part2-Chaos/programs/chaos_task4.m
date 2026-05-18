@@ -78,9 +78,14 @@ colormap(parula);
 xlabel('$t/\nu$', 'Interpreter', 'latex');
 ylabel('$T/\nu$', 'Interpreter', 'latex');
 title('$\log(r(t,T))$', 'Interpreter', 'latex');
-
 set(gca, 'FontSize', 12);
 
+% Save the plot automatically
+if isgraphics(plotG)
+    exportgraphics(plotG, fullfile(params.plot.folder, "Plot4G.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plotG (figure was closed).');
+end
 
 %% Manually selected recurrence pairs
 
@@ -200,6 +205,13 @@ title('Chaotic attractor and UPOs', 'Interpreter', 'latex');
 
 legend('Interpreter', 'latex', 'Location', 'best');
 view(3);
+
+% Save the plot automatically
+if isgraphics(plotH)
+    exportgraphics(plotH, fullfile(params.plot.folder, "Plot4H.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plotH (figure was closed).');
+end
 
 %% Floquet multipliers and time scales 
 
