@@ -16,6 +16,7 @@ params.plot.folder = "../plots";
 if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
+
 %% --- Common setup ---
 params.fileName = 'veldata.txt';
 params.samplingFreq = 20000;
@@ -24,29 +25,25 @@ params.plot.legendFontSize = 18;
 params.plot.insetFontSize = 16;
 params.plot.lw = 2.1;
 params.plot.lwsmall = 1.8;
-params.plot.rawColor = [0.8 0.8 0.8];
 
-%Added parameters based on parts 2 and 4
+% Parameters based on parts 2 and 4
 params.lambda = 0.01124216;
-params.L_c = 0.3573;
+params.Lc = 0.3573;
 params.eta = 0.000185;    
 
 [u, U] = load_data(params.fileName, Inf);
-
 dx = abs(U) / params.samplingFreq;
 
 lmin = max(1e-4, 2*dx);
 lmax = 1000;
-
 l_S2 = logspace(log10(lmin), log10(lmax), 200)';
 l_S3 = l_S2;
 
-%% --- Compute flatness ---
+%% --- Flatness and Hyper-flatness ---
 S2 = structure_function(u, l_S2, params.samplingFreq, U, 2);
 S4 = structure_function(u, l_S2, params.samplingFreq, U, 4);
 S6 = structure_function(u, l_S2, params.samplingFreq, U, 6);
 
-%% --- Flatness and Hyper-flatness ---
 smooth_window = 7;
 
 F_raw = S4./S2.^2;
@@ -55,8 +52,8 @@ F_smooth = smoothdata(F_raw, 'movmean', smooth_window, 'omitnan');
 H_smooth = smoothdata(H_raw, 'movmean', smooth_window, 'omitnan');
 
 %% --- Calibrate dimensional parameter D of the models ---
-% Fit the observed slopes of F(l) and H(l) in the inertial range.
-fit_range = (l_S2 > params.lambda) & (l_S2 < params.L_c) & ...
+% Fit the observed slopes of F(l) and H(l) in the inertial range
+fit_range = (l_S2 > params.lambda) & (l_S2 < params.Lc) & ...
             isfinite(F_smooth) & F_smooth > 0 & ...
             isfinite(H_smooth) & H_smooth > 0;
 
@@ -66,13 +63,11 @@ pH = polyfit(log(l_S2(fit_range)), log(H_smooth(fit_range)), 1);
 slope_F = pF(1);
 slope_H = pH(1);
 
-% beta-model:
-% F ~ l^(-C), H ~ l^(-2C)
+% Beta-model: F ~ l^(-C), H ~ l^(-2C)
 C_beta_opt = -(slope_F + 2*slope_H) / 5;
 D_beta_opt = 3 - C_beta_opt;
 
-% bifractal model:
-% F ~ l^(-C/3), H ~ l^(-C)
+% Bifractal model: F ~ l^(-C/3), H ~ l^(-C)
 C_bifractal_opt = -(3*slope_F + 9*slope_H) / 10;
 D_bifractal_opt = 3 - C_bifractal_opt;
 
@@ -84,26 +79,26 @@ C_beta = 3 - D_beta;
 C_bifractal = 3 - D_bifractal;
 
 % Model exponents
-% beta-model: all orders follow beta-model scaling
+% Beta-model: all orders follow beta-model scaling
 params.beta_E_exp = -(5/3 + C_beta/3);
 F_beta_exp = -C_beta;
 H_beta_exp = -2*C_beta;
 
-% bifractal model: p <= 3 follows K41, p >= 3 follows beta-model
+% Bifractal model: p <= 3 follows K41, p >= 3 follows beta-model
 params.bifractal_E_exp = -5/3;
 F_bifractal_exp = -C_bifractal/3;
 H_bifractal_exp = -C_bifractal;
 
 %% --- Plot Flatness ---
-plotH = figure();
+plot1H = figure("Name", "Plot1H");
 
-% check values
+% Checking validity
 valid_F_raw = isfinite(l_S2) & isfinite(F_raw) & F_raw > 0;
 valid_F_smooth = isfinite(l_S2) & isfinite(F_smooth) & F_smooth > 0;
 
 % Plot raw data in grey
 loglog(l_S2(valid_F_raw), F_raw(valid_F_raw), ...
-    'Color', params.plot.rawColor, ...
+    'Color', [0.8 0.8 0.8], ...
     'DisplayName', '$F(l)$ (raw)');
 
 hold on; grid on;
@@ -115,22 +110,14 @@ loglog(l_S2(valid_F_smooth), F_smooth(valid_F_smooth), ...
 
 % Averaging the last values of F to get and estimate for the limit
 F_large_scale = mean(F_smooth(end-5:end), 'omitnan');
+
 yline(F_large_scale, 'b-', ...
     'Interpreter', 'latex', ...
     'fontsize', params.plot.insetFontSize, ...
     'Label', '$F(l\rightarrow\infty)$', ...
     'LabelHorizontalAlignment', 'left', ...
     'DisplayName', '$F(l\rightarrow\infty)$', ...
-    'LineWidth',2.0);
-
-% Gaussian reference value
-yline(3, 'k--', ...
-    'Interpreter', 'latex', ...
-    'fontsize', params.plot.insetFontSize, ...
-    'Label', '$F=3$', ...
-    'LabelHorizontalAlignment', 'left', ...
-    'DisplayName', 'Gaussian value', ...
-     'LineWidth',2.0);
+    'LineWidth', params.plot.lw);
 
 xlabel('$l\;[m]$', 'Interpreter', 'latex', ...
     'fontsize', params.plot.fontSize);
@@ -159,15 +146,15 @@ xline(params.lambda, '--r', '$\lambda$', ...
     'LabelHorizontalAlignment', 'left', ...
     'HandleVisibility', 'off');
 
-xline(params.L_c, '--b', '$L_c$', ...
+xline(params.Lc, '--b', '$L_c$', ...
     'Interpreter', 'latex', ...
     'fontsize', params.plot.insetFontSize, ...
     'LabelVerticalAlignment', 'bottom', ...
     'LabelHorizontalAlignment', 'left', ...
     'HandleVisibility', 'off');
 
-% --- Add intermittency predictions to Plot H ---
-l_pred = logspace(log10(params.lambda), log10(params.L_c), 100);
+% Add intermittency predictions to Plot H
+l_pred = logspace(log10(params.lambda), log10(params.Lc), 100);
 
 l_ref = sqrt(l_pred(1) * l_pred(end));
 [~, idx_ref] = min(abs(l_S2 - l_ref));
@@ -189,37 +176,40 @@ legend('show', ...
     'Location', 'NorthEast');
 
 % Save the plot automatically
-exportgraphics(plotH, fullfile(params.plot.folder, "plotH.png"), ...
-    "Resolution", 300);
+if isgraphics(plot1H)
+    exportgraphics(plot1H, fullfile(params.plot.folder, "plot1H.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plot1H (figure was closed).');
+end
 
 %% --- Correction to energy spectrum ---
 % If PART3 has been previously run, the plot will be reopened using
 % the .fig matlab file
 
-plotC_fig  = fullfile(params.plot.folder, "plotC.fig");
-plotC_data = fullfile(params.plot.folder, "plotC_data.mat");
+plot1C_fig  = fullfile(params.plot.folder, "plot1C.fig");
+plot1C_data = fullfile(params.plot.folder, "plot1C_data.mat");
 
-if ~exist(plotC_fig, "file")
-    error("plotC.fig not found. Run PART3_energy_spectrum.m first.");
+if ~exist(plot1C_fig, "file")
+    error("plot1C.fig not found. Run PART3_energy_spectrum.m first\n");
 end
 
-if ~exist(plotC_data, "file")
-    error("plotC_data.mat not found. Save k and Ek_smooth in PART3 first.");
+if ~exist(plot1C_data, "file")
+    error("plot1C_data.mat not found. Run PART3_energy_spectrum.m first\n");
 end
 
 load(plotC_data, "k", "Ek_smooth");
 
-figs = findall(0, "Type", "figure", "Name", "PlotC");
+figs = findall(0, "Type", "figure", "Name", "Plot1C");
 
 if ~isempty(figs)
-    plotC = figs(1);
+    plot1C = figs(1);
 else
-    plotC = openfig(plotC_fig, "visible");
-    plotC.Name = "PlotC";
+    plot1C = openfig(plot1C_fig, "visible");
+    plot1C.Name = "Plot1C";
 end
 
-figure(plotC);
-ax_all = findall(plotC, "Type", "axes");
+figure(plot1C);
+ax_all = findall(plot1C, "Type", "axes");
 ax = ax_all(1);
 hold(ax, "on");
 
@@ -231,14 +221,11 @@ delete(findall(ax, "Tag", "bifractal_E_part8"));
 % params.beta_E_exp = -51/30;
 % params.bifractal_E_exp = -53/30;
 
-k_pred = logspace(1, 3, 100);
+k_anchor_idx = floor(length(k)/2000); 
+k_pred = [k(k_anchor_idx), k(floor(length(k)/10))];
 
-k_anchor = 100;
-[~, anchor_idx] = min(abs(k - k_anchor));
-E_anchor = Ek_smooth(anchor_idx);
-
-E_beta = E_anchor * (k_pred / k_anchor).^params.beta_E_exp;
-E_bifractal = E_anchor * (k_pred / k_anchor).^params.bifractal_E_exp;
+E_beta = Ek_smooth(k_anchor_idx) * (k_pred / k_pred(1)).^params.beta_E_exp;
+E_bifractal = Ek_smooth(k_anchor_idx) * (k_pred / k_pred(1)).^params.bifractal_E_exp;
 
 loglog(ax, k_pred, E_beta, '-.', ...
     'LineWidth', params.plot.lw, ...
@@ -257,12 +244,17 @@ legend(ax, 'show', ...
     'FontSize', params.plot.legendFontSize, ...
     'Location', 'SouthWest');
 
-savefig(plotC, plotC_fig);
-exportgraphics(plotC, fullfile(params.plot.folder, "plotC_part8.png"), ...
+% Save the plot automatically
+if isgraphics(plot1C)
+    savefig(plot1C, plot1C_fig);
+    exportgraphics(plot1C, fullfile(params.plot.folder, "plot1C.png"), ...
     "Resolution", 300);
+else
+    disp('Skipped exporting plot1C (figure was closed).');
+end
 
 %% --- Plot Hyper-flatness ---
-plotI = figure();
+plot1I = figure("Name", "Plot1I");
 
 % Check variables
 valid_H_raw = isfinite(l_S2) & isfinite(H_raw) & H_raw > 0;
@@ -270,7 +262,7 @@ valid_H_smooth = isfinite(l_S2) & isfinite(H_smooth) & H_smooth > 0;
 
 % Plot raw data in grey
 loglog(l_S2(valid_H_raw), H_raw(valid_H_raw), ...
-    'Color', params.plot.rawColor, ...
+    'Color', [0.8 0.8 0.8], ...
     'DisplayName', '$H(l)$ (raw)');
 
 hold on; grid on;
@@ -287,7 +279,7 @@ loglog(l_S2(valid_H_smooth), H_smooth(valid_H_smooth), ...
 % bifractal model: H(l) ~ l^(-C_bifractal)
 
 % Choose a representative range 
-l_pred = logspace(log10(params.lambda), log10(params.L_c), 100);
+l_pred = logspace(log10(params.lambda), log10(params.Lc), 100);
 
 % Anchor the prediction lines 
 l_ref = sqrt(l_pred(1) * l_pred(end));
@@ -306,25 +298,18 @@ loglog(l_pred, H_ref * (l_pred / l_ref).^H_bifractal_exp, ':', ...
 
 % Averaging the last values of F to get and estimate for the limit
 H_large_scale = mean(H_smooth(end-5:end), 'omitnan');
+
 yline(H_large_scale, 'b-', ...
     'Interpreter', 'latex', ...
     'fontsize', params.plot.insetFontSize, ...
     'Label', '$H(l\rightarrow\infty)$', ...
     'LabelHorizontalAlignment', 'left', ...
     'DisplayName', '$H(l\rightarrow\infty)$', ...
-    'LineWidth',2.0);
+    'LineWidth', params.plot.lw);
 
-% Gaussian reference value.
-yline(15, 'k--', ...
-    'Interpreter', 'latex', ...
-    'fontsize', params.plot.insetFontSize, ...
-    'Label', '$H=15$', ...
-    'LabelHorizontalAlignment', 'left', ...
-    'DisplayName', 'Gaussian value', ...
-    'LineWidth',2.0);
-
-xlabel('$l\;[m]$', 'Interpreter', 'latex', 'fontsize', ...
+xlabel('$l\;[\mathrm{m}]$', 'Interpreter', 'latex', 'fontsize', ...
     params.plot.fontSize);
+
 ylabel('$H(l) = \frac{S_6(l)}{S_2(l)^3}$', 'Interpreter', 'latex', ...
     'fontsize', params.plot.fontSize);
 
@@ -333,7 +318,6 @@ legend('show', ...
     'fontsize', params.plot.legendFontSize, ...
     'Location', 'NorthEast');
 
-% Relevant turbulent length scales
 xline(params.eta, '--g', '$\eta$', ...
     'Interpreter', 'latex', ...
     'fontsize', params.plot.insetFontSize, ...
@@ -349,22 +333,25 @@ xline(params.lambda, '--r', '$\lambda$', ...
     'LabelHorizontalAlignment', 'left', ...
     'HandleVisibility', 'off');
 
-xline(params.L_c, '--b', '$L_c$', ...
+xline(params.Lc, '--b', '$L_c$', ...
     'Interpreter', 'latex', ...
     'fontsize', params.plot.insetFontSize, ...
     'LabelVerticalAlignment', 'bottom', ...
     'LabelHorizontalAlignment', 'left', ...
     'HandleVisibility', 'off');
 
-% Save plot automatically
-exportgraphics(plotI, fullfile(params.plot.folder, "plotI.png"), ...
-    "Resolution", 300);
+% Save the plot automatically
+if isgraphics(plot1I)
+    exportgraphics(plot1I, fullfile(params.plot.folder, "plot1I.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plot1I (figure was closed).');
+end
 
+
+%% --- Display results ---
 fprintf('================ Part 1.8 results ================\n');
-
 fprintf('Large-scale flatness estimate F_inf: %e\n', F_large_scale);
 fprintf('Gaussian flatness reference: 3\n');
-
 fprintf('Large-scale hyper-flatness estimate H_inf: %e\n', H_large_scale);
 fprintf('Gaussian hyper-flatness reference: 15\n');
 
@@ -375,7 +362,6 @@ fprintf('bifractal model: D = %.6f, C = %.6f\n', D_bifractal, C_bifractal);
 fprintf('\n[Scalings for results table]\n');
 fprintf('beta-model:      E(k) ~ k^(%.6f)\n', params.beta_E_exp);
 fprintf('bifractal model: E(k) ~ k^(%.6f)\n', params.bifractal_E_exp);
-
 fprintf('beta-model:      H(l) ~ l^(%.6f)\n', H_beta_exp);
 fprintf('bifractal model: H(l) ~ l^(%.6f)\n', H_bifractal_exp);
 

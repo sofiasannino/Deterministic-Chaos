@@ -26,7 +26,7 @@ params.plot.insetFontSize = 16;
 params.plot.lw = 2.1;
 params.plot.lwsmall = 1.8;
 
-% Added parameters based on parts 2 and 4
+% Parameters based on parts 2 and 4
 params.lambda = 0.01124216;
 params.Lc = 0.3573;
 
