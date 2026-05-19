@@ -28,6 +28,7 @@ params.plot.lwsmall = 1.2;
 
 [u, U] = load_data(params.fileName, Inf);
 params.U = U;
+
 params.dx = - U./params.samplingFreq;
 params.x = (0:length(u)-1)' * params.dx;
 params.L = abs(params.x(end));
@@ -35,39 +36,37 @@ params.L = abs(params.x(end));
 %% --- Correlation length ---
 % Absolute displacement
 dl = abs(params.dx);
-
 lmax_autocorr = 1000;
 
-% This function calculates correlation in accordance with our convension:
+% This function calculates correlation in accordance with our convention:
 % a correlation of +l means we take all couples of velocities with index 
 % distance freq * l / U and they are computed excluding the 'physical right
 % tail' of the velocities, meaning that for an index q, velocities
 % 0, 1, ..., q-1 (which physically are on the right of our domain, close to
 % zero) won't be considered since we don't have data for velocities at
 % physical distance +l from them
-Cl = autocorrelation(u, dl, lmax_autocorr);
+[Cl, normalization] = autocorrelation(u, dl, lmax_autocorr);
 
-% Absolute length vectors
+% Absolute length vector
 l = 0:dl:(dl*(length(Cl) - 1));
 
 % Find intersections
 critic_value = 1/exp(1);
 Lc_idx = find(Cl <= critic_value, 1, 'first');
 params.Lc = l(Lc_idx);
-fprintf('Critical length: %e \n', params.Lc)
 
-%% --- Plot B ---
+%% --- Plot 1B ---
 lmax_plot = 10;
 lmax_idx = find(l >= lmax_plot, 1);
 if isempty(lmax_idx)
     lmax_idx = length(l);
 end
 
-plotB = figure();
+plot1B = figure();
 hold on; grid on;
 plot(l(1:lmax_idx), Cl(1:lmax_idx), 'LineWidth', params.plot.lw);
 
-xlabel('$l\;[m]$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
+xlabel('$l\;[\mathrm{m}]$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
 ylabel('$C(l)$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
 
 % Add Lc to plots
@@ -76,8 +75,11 @@ xline(params.Lc, '--r', 'Correlation length Lc', ...
     'LabelVerticalAlignment', 'bottom', 'HandleVisibility', 'off');
 
 % Save the plot automatically
-exportgraphics(plotB, fullfile(params.plot.folder, "plotB.png"), ...
-    "Resolution", 300);
+if isgraphics(plot1B)
+    exportgraphics(plot1B, fullfile(params.plot.folder, "plot1B.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plot1B (figure was closed).');
+end
 
 %% --- Integral scale ---
 % First zero crossing: Cl becomes negative
@@ -89,7 +91,6 @@ idx_zero2 = idx_zero1 + find(Cl(idx_zero1+1:end) >= 0, 1, 'first');
 % Minimum of Cl between first and second zero crossing
 [~, idx_min_rel] = min(Cl(idx_zero1:idx_zero2));
 idx_min = idx_zero1 + idx_min_rel - 1;
-fprintf('Minimum value of Cl: %e \n', Cl(idx_min))
 
 % Integrals
 L_zero1 = trapz(l(1:idx_zero1), Cl(1:idx_zero1));
@@ -101,10 +102,17 @@ err_zero1 = abs(L_zero1 - params.Lc) / params.Lc;
 err_min   = abs(L_min   - params.Lc) / params.Lc;
 err_zero2 = abs(L_zero2 - params.Lc) / params.Lc;
 
-% Print results
-fprintf('\n================ Integral length scales ================\n')
+%% --- Display results ---
+fprintf('================ Part 1.2 results ================\n');
 
-fprintf('\n[Stop at first zero crossing]\n')
+fprintf('Normalization: %e\n', normalization);
+fprintf('Minimum value of Cl: %e \n', Cl(idx_min))
+fprintf('Lc = %e\n', params.Lc)
+fprintf('Lint = %e\n', L_zero1)
+fprintf('Relative difference |Lint - Lc|/Lc = %e\n', err_zero1)
+
+fprintf('\n================ Further experiments ================\n');
+fprintf('[Stop at first zero crossing]\n')
 fprintf('L_int: %e\n', L_zero1)
 fprintf('Error: %e\n', err_zero1)
 
@@ -115,10 +123,3 @@ fprintf('Error: %e\n', err_min)
 fprintf('\n[Stop at second zero crossing]\n')
 fprintf('L_int: %e\n', L_zero2)
 fprintf('Error: %e\n', err_zero2)
-
-fprintf('\n========================================================\n')
-
-fprintf('\nValues used in the results table:\n')
-fprintf('Lc    = %e\n', params.Lc)
-fprintf('Lint  = %e\n', L_zero1)
-fprintf('Relative difference |Lint - Lc|/Lc = %e\n', err_zero1)

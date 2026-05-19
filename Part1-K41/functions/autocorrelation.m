@@ -1,4 +1,4 @@
-function [autoCorr] = autocorrelation(velocity, dl, lmax)
+function [autoCorr, normalization] = autocorrelation(velocity, dl, lmax)
     % Velocity assumed to be a 1D vector field, each sample being 
     % spatially separated by a constant dl
     % Definition of the non-normalized auto correlation function is
@@ -26,7 +26,6 @@ function [autoCorr] = autocorrelation(velocity, dl, lmax)
     % Normalization factor is C_full(1)
     normalization = C_full(1);
     assert(round(normalization, 4) == round(mean(velocity.^2), 4));
-    fprintf('Normalization: %e\n', normalization);
 
     autoCorr = autoCorr / normalization;
 end
