@@ -16,15 +16,15 @@ params.plot.folder = "../plots";
 if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
-%% --- Common setup ---
-params.plot.fontSize = 14;
-params.plot.legendFontSize = 12;
-params.plot.insetFontSize = 10;
-params.plot.lw = 1.5;
-params.plot.lwsmall = 1.2;
 
+%% --- Common setup ---
 params.fileName = 'veldata.txt';
-params.samplingFreq = 20e3;
+params.samplingFreq = 20000;
+params.plot.fontSize = 20;
+params.plot.legendFontSize = 18;
+params.plot.insetFontSize = 16;
+params.plot.lw = 2.1;
+params.plot.lwsmall = 1.8;
 
 [u, U] = load_data(params.fileName, Inf);
 
@@ -32,8 +32,10 @@ lincr = [1e-3, 1e-2, 1e-1, 10];
 lincr_labels = {'1 mm', '1 cm', '10 cm', '10 m'};
 
 %% --- Loop through dataset ---
-plotD = figure();
-maxx_plot = 1600;
+plot1D = figure();
+maxx_plot = 100;
+
+mean_increments = zeros(length(lincr), 1);
 
 for i = 1:length(lincr)   
     [x, d] = increment(u, lincr(i), params.samplingFreq, U);
@@ -61,23 +63,33 @@ for i = 1:length(lincr)
 
     % Axes labels
     if i == 3 || i == 4
-        xlabel('$x\;[m]$', 'Interpreter', 'latex', 'fontsize', ...
+        xlabel('$x\;[\mathrm{m}]$', 'Interpreter', 'latex', 'fontsize', ...
             params.plot.fontSize);
     end
 
     if i == 1 || i == 3
-        ylabel('$\delta u_{||}\;[m/s]$', 'Interpreter', 'latex', ...
+        ylabel('$\delta u_{||}\;[\mathrm{m/s}]$', 'Interpreter', 'latex', ...
             'fontsize', params.plot.fontSize);
     end
 
     % Title
-    subplot_title = ['$l=', num2str(lincr(i)), '\;m$'];
+    subplot_title = ['$l=', num2str(lincr(i)), '\; \mathrm{m}$'];
     title(subplot_title, 'Interpreter', 'latex', 'fontsize', ...
         params.plot.legendFontSize);
 
-    % Print mean increment (should be ~0)
-    disp(['l = ', num2str(lincr(i)), ': mean = ', num2str(mean(d))]);
+    mean_increments(i) = mean(d);
 end
 
-exportgraphics(plotD, fullfile(params.plot.folder, "plotD.png"), ...
-    "Resolution", 300);
+% Save the plot automatically
+if isgraphics(plot1D)
+    exportgraphics(plot1D, fullfile(params.plot.folder, "plot1D.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plot1D (figure was closed).');
+end
+
+%% --- Display results ---
+fprintf('================ Part 1.5 results ================\n');
+
+for i = 1:length(lincr)
+    fprintf('l = %e, mean = %e\n', lincr(i), mean_increments(i));
+end
