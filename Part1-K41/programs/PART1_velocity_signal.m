@@ -20,11 +20,7 @@ end
 
 %% --- Common setup ---
 params.fileName = 'veldata.txt';
-
-% Sampling frequency is 20 kHz
 params.samplingFreq = 20000;
-
-% Plot parameters
 params.plot.fontSize = 14;
 params.plot.legendFontSize = 12;
 params.plot.insetFontSize = 10;
@@ -42,15 +38,11 @@ params.U = U;
 time_vector = (0:length(u)-1)' / params.samplingFreq;
 
 % Apply Taylor's frozen flow hypothesis: t = -x/U -> x = -t*U
-% x values
 params.x = -time_vector * params.U;
-
-% Length 
 params.L = abs(params.x(end));
 
-
-%% --- Plot A ---
-plotA = figure();
+%% --- Plot 1A ---
+plot1A = figure();
 hold on; grid on;
 
 % Plot total velocity u_tot(x) = u + U against x
@@ -69,10 +61,16 @@ ylabel('$u_\mathrm{tot}(x)\;[m/s]$', 'Interpreter', 'latex', ...
     'FontSize', params.plot.fontSize);
 
 % Save the plot automatically
-exportgraphics(plotA, fullfile(params.plot.folder, "plotA.png"), ...
-    "Resolution", 300);
+if isgraphics(plot1A)
+    exportgraphics(plot1A, fullfile(params.plot.folder, "plot1A.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plot1A (figure was closed).');
+end
 
 %% --- Turbulence intensity ---
 params.I = sqrt(mean(u.^2)) / params.U;
+
+%% --- Display results ---
+fprintf('================ Part 1.1 results ================\n');
 fprintf('Mean velocity: %e\n', params.U);
 fprintf('Turbulence intensity: %e\n', params.I);
