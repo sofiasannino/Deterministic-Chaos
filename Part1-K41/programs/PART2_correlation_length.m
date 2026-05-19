@@ -62,7 +62,7 @@ if isempty(lmax_idx)
     lmax_idx = length(l);
 end
 
-plot1B = figure();
+plot1B = figure("Name", "Plot1B");
 hold on; grid on;
 plot(l(1:lmax_idx), Cl(1:lmax_idx), 'LineWidth', params.plot.lw);
 
@@ -104,7 +104,6 @@ err_zero2 = abs(L_zero2 - params.Lc) / params.Lc;
 
 %% --- Display results ---
 fprintf('================ Part 1.2 results ================\n');
-
 fprintf('Normalization: %e\n', normalization);
 fprintf('Minimum value of Cl: %e \n', Cl(idx_min))
 fprintf('Lc = %e\n', params.Lc)

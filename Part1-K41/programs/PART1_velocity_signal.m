@@ -42,7 +42,7 @@ params.x = -time_vector * params.U;
 params.L = abs(params.x(end));
 
 %% --- Plot 1A ---
-plot1A = figure();
+plot1A = figure("Name", "Plot1A");
 hold on; grid on;
 
 % Plot total velocity u_tot(x) = u + U against x
