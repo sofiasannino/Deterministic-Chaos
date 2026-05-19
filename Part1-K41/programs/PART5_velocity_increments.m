@@ -32,7 +32,7 @@ lincr = [1e-3, 1e-2, 1e-1, 10];
 lincr_labels = {'1 mm', '1 cm', '10 cm', '10 m'};
 
 %% --- Loop through dataset ---
-plot1D = figure();
+plot1D = figure("Name", "Plot1D");
 maxx_plot = 100;
 
 mean_increments = zeros(length(lincr), 1);

@@ -20,18 +20,18 @@ end
 %% --- Common setup ---
 params.fileName = 'veldata.txt';
 params.samplingFreq = 20000;
-params.plot.fontSize = 14;
-params.plot.legendFontSize = 12;
-params.plot.insetFontSize = 10;
-params.plot.lw = 1.5;
-params.plot.lwsmall = 1.2;
+params.plot.fontSize = 20;
+params.plot.legendFontSize = 18;
+params.plot.insetFontSize = 16;
+params.plot.lw = 2.1;
+params.plot.lwsmall = 1.8;
 
 [u, U] = load_data(params.fileName, Inf);
 lincr = [1e-3, 1e-2, 1e-1, 10];
 
 %% --- Loop over dataset ---
-plotE2 = figure();
-plotE1 = figure();
+plot1Ev1 = figure("Name", "Plot1Ev1");
+plot1Ev2 = figure("Name", "Plot1Ev2");
 
 params.pdf = cell(1, length(lincr));
 params.pdf_gauss = cell(1, length(lincr));
@@ -40,9 +40,9 @@ histNbins = 100;
 
 for scale = 1:2
     if scale == 1
-        figure(plotE1);
+        figure(plot1Ev1);
     else
-        figure(plotE2);
+        figure(plot1Ev2);
     end
     for i = 1:length(lincr)
         s = subplot(2, 2, i);
@@ -68,19 +68,19 @@ for scale = 1:2
             plot(increments, values, 'LineWidth', params.plot.lw);
         end
 
-        bound = 6*std(d); %
+        bound = 6*std(d);
         xlim([-bound, bound]);
 
         G = fit_gaussian(increments, d);
         hold on; grid on;
         plot(increments, G, 'LineWidth', params.plot.lw);
-        params.pdf_gauss{i} = G;   % Suggestion
+        params.pdf_gauss{i} = G;
         params.pdf{i} = values;
         params.pdf_incr{i} = increments;
 
         % Axis labels
         if i == 3 || i == 4
-            xlabel('$\delta u_{||}\;[m/s]$', 'Interpreter', 'latex', ...
+            xlabel('$\delta u_{||}\;[\mathrm{m/s}]$', 'Interpreter', 'latex', ...
                 'fontsize', params.plot.fontSize);
         end
         if i == 1 || i == 3
@@ -94,17 +94,24 @@ for scale = 1:2
                 'fontsize', params.plot.legendFontSize); 
         end
 
-        title(['$l=', num2str(lincr(i)), '\;m$'], 'Interpreter', ...
+        title(['$l=', num2str(lincr(i)), '\; \mathrm{m}$'], 'Interpreter', ...
             'latex', 'fontsize', params.plot.fontSize);
     end
 
 end
 
 % Save the plot automatically
-exportgraphics(plotE1, fullfile(params.plot.folder, "plotE1.png"), ...
-    "Resolution", 300);
-exportgraphics(plotE1, fullfile(params.plot.folder, "plotE1.png"), ...
-    "Resolution", 300);
+if isgraphics(plot1Ev1)
+    exportgraphics(plot1Ev1, fullfile(params.plot.folder, "plot1Ev1.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plot1Ev1 (figure was closed).');
+end
+
+if isgraphics(plot1Ev2)
+    exportgraphics(plot1Ev2, fullfile(params.plot.folder, "plot1Ev2.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plot1Ev2 (figure was closed).');
+end
 
 %% Inspecting if H2 stands
 h_exp = zeros(length(lincr)-1, 5);
@@ -116,16 +123,16 @@ for i = 1:(length(lincr)-1)
     pdf_i   = params.pdf{i};
     pdf_i_1 = params.pdf{i+1};
 
-    % common support for interpolation
+    % Common support for interpolation
     common = du_i_1 >= min(du_i) & du_i_1 <= max(du_i);
 
     du_common = du_i_1(common);
     pdf2 = pdf_i_1(common);
 
-    % interpolate pdf_i in the grid of pdf_i_1
+    % Interpolate pdf_i in the grid of pdf_i_1
     pdf1 = interp1(du_i, pdf_i, du_common, 'spline');
 
-    % remove NaNs etc
+    % Remove NaNs etc
     valid = isfinite(pdf1) & isfinite(pdf2) & pdf1 > 0 & pdf2 > 0;
 
     du_valid = du_common(valid);
@@ -134,17 +141,16 @@ for i = 1:(length(lincr)-1)
 
     for p = 1:5
 
-        % moments
+        % Compute moments
         m1 = trapz(du_valid, abs(du_valid).^p .* pdf1_valid);
         m2 = trapz(du_valid, abs(du_valid).^p .* pdf2_valid);
 
-        % estimate h 
+        % Estimate h 
         h_exp(i,p) = (1/p) * log10(m2/m1) / log10(lincr(i+1)/lincr(i));
-
     end
 end
 
-plotH2 = figure();
+plot1Extra2 = figure();
 hold on; grid on;
 
 p_vals = 1:5;
@@ -171,4 +177,9 @@ ylabel('Estimated scaling exponent $h$', 'Interpreter', 'latex', 'FontSize', par
 title('Testing K41 H2: Self-Similarity', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
 legend('Interpreter', 'latex', 'FontSize', params.plot.legendFontSize, 'Location', 'northeast');
 
-exportgraphics(plotH2, fullfile(params.plot.folder, "plotH2_check.png"), "Resolution", 300);
+% Save the plot automatically
+if isgraphics(plot1Extra2)
+    exportgraphics(plot1Extra2, fullfile(params.plot.folder, "plot1Extra2.png"), "Resolution", 300);
+else
+    disp('Skipped exporting plot1Extra2 (figure was closed).');
+end

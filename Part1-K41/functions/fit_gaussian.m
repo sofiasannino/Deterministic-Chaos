@@ -5,6 +5,5 @@ function G = fit_gaussian(du, samples)
 
     mu = mean(samples);
     sigma = std(samples,1);
-
     G = 1 / (sqrt(2*pi)*sigma) * exp(-0.5 * ((du-mu) / sigma).^2);
 end
