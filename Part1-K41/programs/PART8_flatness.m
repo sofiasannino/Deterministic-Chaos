@@ -19,11 +19,11 @@ end
 %% --- Common setup ---
 params.fileName = 'veldata.txt';
 params.samplingFreq = 20000;
-params.plot.fontSize = 14;
-params.plot.legendFontSize = 12;
-params.plot.insetFontSize = 10;
-params.plot.lw = 1.5;
-params.plot.lwsmall = 1.2;
+params.plot.fontSize = 20;
+params.plot.legendFontSize = 18;
+params.plot.insetFontSize = 16;
+params.plot.lw = 2.1;
+params.plot.lwsmall = 1.8;
 params.plot.rawColor = [0.8 0.8 0.8];
 
 %Added parameters based on parts 2 and 4
@@ -360,7 +360,7 @@ xline(params.L_c, '--b', '$L_c$', ...
 exportgraphics(plotI, fullfile(params.plot.folder, "plotI.png"), ...
     "Resolution", 300);
 
-fprintf('\n================ Part 1.8 results ================\n');
+fprintf('================ Part 1.8 results ================\n');
 
 fprintf('Large-scale flatness estimate F_inf: %e\n', F_large_scale);
 fprintf('Gaussian flatness reference: 3\n');
@@ -382,5 +382,3 @@ fprintf('bifractal model: H(l) ~ l^(%.6f)\n', H_bifractal_exp);
 fprintf('\n[Additional flatness scalings]\n');
 fprintf('beta-model:      F(l) ~ l^(%.6f)\n', F_beta_exp);
 fprintf('bifractal model: F(l) ~ l^(%.6f)\n', F_bifractal_exp);
-
-fprintf('==================================================\n');
