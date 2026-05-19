@@ -20,11 +20,11 @@ end
 %% --- Common setup ---
 params.fileName = 'veldata.txt';
 params.samplingFreq = 20000; 
-params.plot.fontSize = 14;
-params.plot.legendFontSize = 12;
-params.plot.insetFontSize = 10;
-params.plot.lw = 1.5;
-params.plot.lwsmall = 1.2;
+params.plot.fontSize = 20;
+params.plot.legendFontSize = 18;
+params.plot.insetFontSize = 16;
+params.plot.lw = 2.1;
+params.plot.lwsmall = 1.8;
 
 [u, U] = load_data(params.fileName, Inf);
 params.U = U;
@@ -66,8 +66,11 @@ plot1B = figure("Name", "Plot1B");
 hold on; grid on;
 plot(l(1:lmax_idx), Cl(1:lmax_idx), 'LineWidth', params.plot.lw);
 
-xlabel('$l\;[\mathrm{m}]$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
-ylabel('$C(l)$', 'Interpreter', 'latex', 'FontSize', params.plot.fontSize);
+xlabel('$l\;[\mathrm{m}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$C(l)$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
 
 % Add Lc to plots
 xline(params.Lc, '--r', 'Correlation length Lc', ...

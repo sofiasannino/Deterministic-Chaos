@@ -21,11 +21,11 @@ end
 %% --- Common setup ---
 params.fileName = 'veldata.txt';
 params.samplingFreq = 20000;
-params.plot.fontSize = 14;
-params.plot.legendFontSize = 12;
-params.plot.insetFontSize = 10;
-params.plot.lw = 1.5;
-params.plot.lwsmall = 1.2;
+params.plot.fontSize = 20;
+params.plot.legendFontSize = 18;
+params.plot.insetFontSize = 16;
+params.plot.lw = 2.1;
+params.plot.lwsmall = 1.8;
 
 % Load data
 [u, U] = load_data(params.fileName, Inf);
