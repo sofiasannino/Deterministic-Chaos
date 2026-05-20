@@ -17,9 +17,17 @@ if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
 
-%% inputs
-nu_values = [8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4]; %viscosity values 
+%% --- Common setup ---
+params.plot.fontSize = 20;
+params.plot.legendFontSize = 18;
+params.plot.insetFontSize = 16;
+params.plot.lw = 2.1;
+params.plot.lwsmall = 1.8;
+
+%% Inputs
+nu_values = [8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4];
 nu = nu_values(3);             % hyperviscosity parameter
+
 N = 128;                       % spatial resolution
 dt = 0.1 * nu;                 % time step size for time integration
 epsilon = 1e-6;                % perturbation amplitude for computing J
@@ -27,13 +35,13 @@ tau = 2 * nu;                  % time intervals of computing J
 N_norm = 5000;                 % number of re-normalizations
 N_exp = 5;                     % number of Lyapunov exponents
 
-%% initial condition
+%% Initial condition
 [x,~] = domain(N);             % construct the spatial domain
 u0 = sin(2.0*pi*x) / sqrt(nu); % initial condition in physical state
 v0 = field2vector(u0,N);       % initial state vector
 n = length(v0);
 
-%% compute Lyapunov exponents
+%% Compute Lyapunov exponents
 Q = zeros(length(v0),N_exp);   % allocate matrix of orthonormal vectors
 for i = 1:N_exp
     Q(i,i) = 1;                % initialize orthonormal vectors
