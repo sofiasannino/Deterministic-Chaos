@@ -1,3 +1,4 @@
+
 %% --- Move to this file's folder ---
 try
     cd(fileparts(matlab.desktop.editor.getActiveFilename));
@@ -229,7 +230,7 @@ for q = 1:n_guesses
     lambda_abs = abs(lambda);
 
     % Ignore the neutral multiplier closest to 1
-    [~, idx_neutral] = min(abs(lambda_abs - 1));
+    [~, idx_neutral] = min(abs(lambda - 1));
     lambda_abs(idx_neutral) = [];
 
     % Leading non-neutral Floquet multiplier
