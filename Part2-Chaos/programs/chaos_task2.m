@@ -26,7 +26,7 @@ params.plot.lwsmall = 1.8;
 
 %% Inputs
 nu_values = [8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4];
-nu = nu_values(1);             % hyperviscosity parameter
+nu = nu_values(2);             % hyperviscosity parameter
 
 N = 128;                       % spatial resolution
 dt = 0.1 * nu;                 % time step size for time integration
@@ -122,11 +122,11 @@ end
 
 %% --- Display results ---
 fprintf('================ Part 2.2 results ================\n');
-fprintf('Final rescaled Lyapunov exponents (nu * chi_i) at t/nu = %.2f:\n', t(end)/nu);
+fprintf('Final rescaled Lyapunov exponents (nu * chi_i) at t/nu = %e:\n', t(end)/nu);
 
 final_rescaled_X = nu .* X(:, end);
 for q = 1:N_exp
-    fprintf('  chi_%d = %g\n', q, final_rescaled_X(q));
+    fprintf('chi_%d = %e\n', q, final_rescaled_X(q));
 end
 
-fprintf('\nt^*_L = %.2f:\n', 1/max(X(:, end)));
+fprintf('\nt^*_L = %e:\n', 1/max(X(:, end)));
