@@ -1,4 +1,3 @@
-
 %% --- Move to this file's folder ---
 try
     cd(fileparts(matlab.desktop.editor.getActiveFilename));
@@ -18,7 +17,14 @@ if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
 
-%% inputs
+%% --- Common setup ---
+params.plot.fontSize = 20;
+params.plot.legendFontSize = 18;
+params.plot.insetFontSize = 16;
+params.plot.lw = 2.1;
+params.plot.lwsmall = 1.8;
+
+%% Inputs
 nu = 6.5e-4;                    % hyperviscosity parameter
 N = 128;                        % spatial resolution
 t_study = 2500.0 * nu;          % analysis time period
@@ -27,16 +33,15 @@ dt_store = 1.0 * nu;            % time intervals of storing a snapshot
 T_max = 120.0 * nu;             % maximum T for recurrent flow analysis
 epsilon = 1e-6;                 % perturbation amplitude for computing J
 
-%% initial condition
+%% Initial condition
 [x,~] = domain(N);              % construct the spatial domain
 u0 = sin(2.0*pi*x) / sqrt(nu);  % initial condition in physical state
 v0 = field2vector(u0,N);        % initial state vector
 
-%% time integrate the KSE
+%% Time integrate the KSE
 [V,t_vec] = KSE_integrate(v0,t_study,dt,dt_store,nu,N);
 
 %% Recurrence indicator
-
 % Maximum lag in number of stored snapshots
 max_lag = floor(T_max / dt_store);
 
@@ -50,9 +55,7 @@ T_vec = (1:max_lag)' * dt_store;
 n_t = length(t_vec) - max_lag;
 t_rec = t_vec(1:n_t);
 
-% Allocate recurrence matrix:
-% rows    -> t
-% columns -> T
+% Allocate recurrence matrix
 R = zeros(n_t, max_lag);
 
 for j = 1:max_lag
@@ -70,26 +73,26 @@ end
 R(R <= 0) = eps;
 
 % Plot ln(r(t,T))
-plotG = figure();
+plot2G = figure('Name', 'Plot2G');
 imagesc(t_rec/nu, T_vec/nu, log(R)');
 set(gca, 'YDir', 'normal');
 colorbar;
 colormap(parula);
 
-xlabel('$t/\nu$', 'Interpreter', 'latex');
-ylabel('$T/\nu$', 'Interpreter', 'latex');
-title('$\log(r(t,T))$', 'Interpreter', 'latex');
-set(gca, 'FontSize', 12);
+xlabel('$t/\nu\;\mathrm{[s^2/m^2]}$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$T/\nu\;\mathrm{[s^2/m^2]}$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
 
 % Save the plot automatically
-if isgraphics(plotG)
-    exportgraphics(plotG, fullfile(params.plot.folder, "Plot4G.png"), "Resolution", 300);
+if isgraphics(plot2G)
+    exportgraphics(plot2G, fullfile(params.plot.folder, "Plot2G.png"), "Resolution", 300);
 else
-    disp('Skipped exporting plotG (figure was closed).');
+    disp('Skipped exporting plot2G (figure was closed).');
 end
 
 %% Manually selected recurrence pairs
-
 % Hardcode here the selected pairs from Plot G
 % Columns: [t/nu, T/nu]
 pairs_scaled = [   
@@ -129,13 +132,12 @@ for q = 1:size(pairs_scaled,1)
 end
 
 %% Converge UPO guesses
-
 v_upo = zeros(size(V,1), n_guesses);
 T_upo = zeros(n_guesses, 1);
 flag_upo = zeros(n_guesses, 1);
+closure_error_upo = zeros(n_guesses, 1);
 
 for q = 1:n_guesses
-
     % Initial guess from recurrence plot
     vg = v_guess(:, q);
     Tg = T_guess_grid(q);
@@ -150,26 +152,15 @@ for q = 1:n_guesses
 
     % Check closure error
     v_end = KSE_integrate(v_best, T_best, dt, 0, nu, N);
-    closure_error = norm(v_end - v_best) / norm(v_best);
-
-    % Print table-relevant quantities available so far
-    fprintf('\nUPO guess %d\n', q);
-    fprintf('t/nu             = %.6f\n', pairs_scaled(q,1));
-    fprintf('T_guess/nu       = %.6f\n', T_guess_grid(q)/nu);
-    fprintf('search result    = %d\n', flag);
-    fprintf('T_UPO/nu         = %.6f\n', T_best/nu);
-    fprintf('log r(t,T)       = %.6e\n', log_r_selected(q));
-    fprintf('closure error    = %.6e\n', closure_error);
-
+    closure_error_upo(q) = norm(v_end - v_best) / norm(v_best);
 end
 
 
 %% Plot H: chaotic attractor with UPOs
-
 % Project chaotic trajectory
 [E_att, P_att, D_att] = projection(V, N, nu);
 
-plotH = figure();
+plot2H = figure('Name', 'Plot2H');
 hold on; grid on;
 
 % Plot chaotic attractor
@@ -180,7 +171,6 @@ plot3(E_att, P_att, D_att, ...
 
 % Plot each computed UPO
 for q = 1:n_guesses
-
     % Skip candidates with invalid period/state
     if any(isnan(v_upo(:,q))) || isnan(T_upo(q)) || T_upo(q) <= 0
         continue
@@ -198,30 +188,33 @@ for q = 1:n_guesses
         'DisplayName', ['$\mathrm{UPO}\ ', num2str(q), '$']);
 end
 
-xlabel('$E$', 'Interpreter', 'latex');
-ylabel('$P$', 'Interpreter', 'latex');
-zlabel('$D$', 'Interpreter', 'latex');
+xlabel('$E$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
 
-title('Chaotic attractor and UPOs', 'Interpreter', 'latex');
+ylabel('$P$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
 
-legend('Interpreter', 'latex', 'Location', 'best');
+zlabel('$D$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+legend('Interpreter', 'latex', 'Location', 'best', ...
+    'FontSize', params.plot.legendFontSize);
+
 view(3);
 
 % Save the plot automatically
-if isgraphics(plotH)
-    exportgraphics(plotH, fullfile(params.plot.folder, "Plot4H.png"), "Resolution", 300);
+if isgraphics(plot2H)
+    exportgraphics(plot2H, fullfile(params.plot.folder, "Plot2H.png"), "Resolution", 300);
 else
-    disp('Skipped exporting plotH (figure was closed).');
+    disp('Skipped exporting plot2H (figure was closed).');
 end
 
 %% Floquet multipliers and time scales 
-
 lambda_max_upo = zeros(n_guesses, 1);
 tF_star = zeros(n_guesses, 1);
 stability_upo = strings(n_guesses, 1);
 
 for q = 1:n_guesses
-
     % Compute Jacobian of the flow map over one UPO period
     J = Jacobian(v_upo(:, q), T_upo(q), epsilon, dt, nu, N);
 
@@ -245,15 +238,19 @@ for q = 1:n_guesses
 
     % Floquet divergence time scale
     tF_star(q) = T_upo(q) / log(lambda_max_upo(q));
+end
 
-    % Print table quantities
+%% --- Display results ---
+fprintf('================ Part 2.4 results ================');
+for q = 1:n_guesses
     fprintf('\nUPO %d\n', q);
-    fprintf('t/nu             = %.6f\n', pairs_scaled(q,1));
-    fprintf('T_guess/nu       = %.6f\n', T_guess_grid(q)/nu);
-    fprintf('search result    = %d\n', flag_upo(q));
-    fprintf('T_UPO/nu         = %.6f\n', T_upo(q)/nu);
-    fprintf('max |lambda_i|   = %.6e\n', lambda_max_upo(q));
-    fprintf('stability        = %s\n', stability_upo(q));
-    fprintf('tF_star/nu       = %.6f\n', tF_star(q)/nu);
-
+    fprintf('t = %e\n', pairs_scaled(q,1)*nu);
+    fprintf('T_guess = %e\n', T_guess_grid(q));
+    fprintf('log r(t,T) = %e\n', log_r_selected(q));
+    fprintf('search result = %d\n', flag_upo(q));
+    fprintf('T_UPO = %e\n', T_upo(q));
+    fprintf('closure error = %e\n', closure_error_upo(q));
+    fprintf('max |lambda_i| = %e\n', lambda_max_upo(q));
+    fprintf('stability = %s\n', stability_upo(q));
+    fprintf('tF_star = %e\n', tF_star(q));
 end
