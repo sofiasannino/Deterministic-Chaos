@@ -300,35 +300,14 @@ end
 
 %% --- Display results ---
 fprintf('================ Part 2.3 results ================\n');
-fprintf('Search4PO concluded with flag = %d\n', flag_vec(1));
-fprintf('Analysed nu = %.4e, estimated period T = %.6e  \n', nu_vec(1), T_vec(1));
-
-for i = 2:(m + 1)
-    if i == 2
-        fprintf('\n Continuation step %d of %d , concluded with flag = %d\n', i-1, m, flag_vec(i));
-    else
-        fprintf('\n Continuation step %d/%d concluded with flag = %d\n', i-1, m, flag_vec(i));
-    end
-    fprintf('Analysed nu = %.4e, estimated period T = %.6e  \n', nu_vec(i), T_vec(i));
-end
 
 selected_idx = [1 6 11 16 21];
-fprintf('\n      nu              T              flag\n');
+fprintf('\n      nu              T              |lambda*|              flag\n');
 for j = selected_idx
-    fprintf(' %.6e    %.6e      %d\n', nu_vec(j), T_vec(j), flag_vec(j));
-end
-
-for i = 1:(m + 1)
-    fprintf('\n Floquet calculation %d/%d completed\n', i, m+1);
-    fprintf('Analysed nu = %.4e, |lambda*| = %.6e  \n', nu_vec(i), lambda_vec(i));
+    fprintf(' %e    %e    %e    %d\n', nu_vec(j), T_vec(j), lambda_vec(j), flag_vec(j));
 end
 
 if ~isempty(idx_cross)
     fprintf('\n Estimated crossing of |lambda*| = 1:\n');
     fprintf('nu_cross = %.6e\n', nu_cross);
-end
-
-fprintf('\n      nu              |lambda*|\n');
-for j = selected_idx
-    fprintf(' %.6e    %.6e\n', nu_vec(j), lambda_vec(j));
 end
