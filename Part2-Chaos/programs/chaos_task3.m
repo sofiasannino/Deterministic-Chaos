@@ -308,6 +308,6 @@ for j = selected_idx
 end
 
 if ~isempty(idx_cross)
-    fprintf('\n Estimated crossing of |lambda*| = 1:\n');
+    fprintf('\nEstimated crossing of |lambda*| = 1:\n');
     fprintf('nu_cross = %.6e\n', nu_cross);
 end
