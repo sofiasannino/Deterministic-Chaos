@@ -43,10 +43,10 @@ S2 = structure_function(u, l_S2, params.samplingFreq, U, 2);
 S4 = structure_function(u, l_S2, params.samplingFreq, U, 4);
 S6 = structure_function(u, l_S2, params.samplingFreq, U, 6);
 
-smooth_window = 7;
-
 F_raw = S4./S2.^2;
 H_raw = S6./S2.^3;
+
+smooth_window = 7;
 F_smooth = smoothdata(F_raw, 'movmean', smooth_window, 'omitnan');
 H_smooth = smoothdata(H_raw, 'movmean', smooth_window, 'omitnan');
 
@@ -64,15 +64,11 @@ slope_H = pH(1);
 
 % Beta-model: F ~ l^(-C), H ~ l^(-2C)
 C_beta_opt = -(slope_F + 2*slope_H) / 5;
-D_beta_opt = 3 - C_beta_opt;
+D_beta = 3 - C_beta_opt;
 
 % Bifractal model: F ~ l^(-C/3), H ~ l^(-C)
 C_bifractal_opt = -(3*slope_F + 9*slope_H) / 10;
-D_bifractal_opt = 3 - C_bifractal_opt;
-
-% Use calibrated values
-D_beta = D_beta_opt;
-D_bifractal = D_bifractal_opt;
+D_bifractal = 3 - C_bifractal_opt;
 
 C_beta = 3 - D_beta;
 C_bifractal = 3 - D_bifractal;
@@ -117,10 +113,10 @@ yline(F_large_scale, '--k', ...
     'LabelHorizontalAlignment', 'right', ...
     'DisplayName', '$F(l\rightarrow\infty)$');
 
-xlabel('$l\;[m]$', 'Interpreter', 'latex', ...
+xlabel('$l\;[\mathrm{m}]$', 'Interpreter', 'latex', ...
     'fontsize', params.plot.fontSize);
 
-ylabel('$F(l) = \frac{S_4(l)}{S_2(l)^2}$', ...
+ylabel('$F(l)$', ...
     'Interpreter', 'latex', ...
     'fontsize', params.plot.fontSize);
 
@@ -151,8 +147,12 @@ xline(params.Lc, '--b', '$L_c$', ...
     'HandleVisibility', 'off');
 
 % Add intermittency predictions to Plot H
+% Predictions are based on the calibrated dimensions D_beta and D_bifractal
+
+% Choose a representative range
 l_pred = logspace(log10(params.lambda), log10(params.Lc), 100);
 
+% Anchor the prediction lines
 l_ref = sqrt(l_pred(1) * l_pred(end));
 [~, idx_ref] = min(abs(l_S2 - l_ref));
 F_ref = F_smooth(idx_ref);
@@ -160,12 +160,12 @@ F_ref = F_smooth(idx_ref);
 loglog(l_pred, F_ref * (l_pred/l_ref).^F_beta_exp, '-.', ...
     'LineWidth', params.plot.lw, ...
     'Color', [0, 0.5, 0], ...
-    'DisplayName', sprintf('$\\beta$-model ($\\propto l^{%.3f}$)', F_beta_exp));
+    'DisplayName', sprintf('$\\beta$-model ($l^{%.3f}$)', F_beta_exp));
 
 loglog(l_pred, F_ref * (l_pred/l_ref).^F_bifractal_exp, ':', ...
     'LineWidth', params.plot.lw, ...
     'Color', 'b', ...
-    'DisplayName', sprintf('bifractal ($\\propto l^{%.3f}$)', F_bifractal_exp));
+    'DisplayName', sprintf('bifractal ($l^{%.3f}$)', F_bifractal_exp));
 
 legend('show', ...
     'Interpreter', 'latex', ...
@@ -225,13 +225,13 @@ E_bifractal = Ek_smooth(k_anchor_idx) * (k_pred / k_pred(1)).^params.bifractal_E
 
 loglog(ax, k_pred, E_beta, '-.', ...
     'LineWidth', params.plot.lw, ...
-    'DisplayName', sprintf('$\\beta$-model ($\\propto k^{%.2f}$)', params.beta_E_exp), ...
+    'DisplayName', sprintf('$\\beta$-model ($k^{%.2f}$)', params.beta_E_exp), ...
     'Color', [0, 0.5, 0], ...
     'Tag', 'beta_E_part8');
 
 loglog(ax, k_pred, E_bifractal, ':', ...
     'LineWidth', params.plot.lw, ...
-    'DisplayName', sprintf('bifractal ($\\propto k^{%.2f}$)', params.bifractal_E_exp), ...
+    'DisplayName', sprintf('bifractal ($k^{%.2f}$)', params.bifractal_E_exp), ...
     'Color', 'b', ...
     'Tag', 'bifractal_E_part8');
 
@@ -252,7 +252,7 @@ end
 %% --- Plot Hyper-flatness ---
 plot1I = figure("Name", "Plot1I");
 
-% Check variables
+% Checking validity
 valid_H_raw = isfinite(l_S2) & isfinite(H_raw) & H_raw > 0;
 valid_H_smooth = isfinite(l_S2) & isfinite(H_smooth) & H_smooth > 0;
 
@@ -263,34 +263,10 @@ loglog(l_S2(valid_H_raw), H_raw(valid_H_raw), ...
 
 hold on; grid on;
 
-% Plot smoothed data 
+% Plot smoothed data
 loglog(l_S2(valid_H_smooth), H_smooth(valid_H_smooth), ...
     'LineWidth', params.plot.lw, ...
     'DisplayName', '$H(l)$ (smoothed)');
-
-% Add intermittency corrections to plot I
-
-% Predictions are based on the calibrated dimensions D_beta and D_bifractal.
-% beta-model:      H(l) ~ l^(-2*C_beta)
-% bifractal model: H(l) ~ l^(-C_bifractal)
-
-% Choose a representative range 
-l_pred = logspace(log10(params.lambda), log10(params.Lc), 100);
-
-% Anchor the prediction lines 
-l_ref = sqrt(l_pred(1) * l_pred(end));
-[~, idx_ref] = min(abs(l_S2 - l_ref));
-H_ref = H_smooth(idx_ref);
-
-loglog(l_pred, H_ref * (l_pred / l_ref).^H_beta_exp, '-.', ...
-    'LineWidth', params.plot.lw, ...
-    'Color', [0, 0.5, 0], ...
-    'DisplayName', sprintf('$\\beta$-model ($\\propto l^{%.3f}$)', H_beta_exp));
-
-loglog(l_pred, H_ref * (l_pred / l_ref).^H_bifractal_exp, ':', ...
-    'LineWidth', params.plot.lw, ...
-    'Color', 'b', ...
-    'DisplayName', sprintf('bifractal ($\\propto l^{%.3f}$)', H_bifractal_exp));
 
 % Averaging the last values of F to get and estimate for the limit
 H_large_scale = mean(H_smooth(end-5:end), 'omitnan');
@@ -305,13 +281,8 @@ yline(H_large_scale, '--k', ...
 xlabel('$l\;[\mathrm{m}]$', 'Interpreter', 'latex', 'fontsize', ...
     params.plot.fontSize);
 
-ylabel('$H(l) = \frac{S_6(l)}{S_2(l)^3}$', 'Interpreter', 'latex', ...
+ylabel('$H(l)$', 'Interpreter', 'latex', ...
     'fontsize', params.plot.fontSize);
-
-legend('show', ...
-    'Interpreter', 'latex', ...
-    'fontsize', params.plot.legendFontSize, ...
-    'Location', 'NorthEast');
 
 xline(params.eta, '--k', '$\eta$', ...
     'Interpreter', 'latex', ...
@@ -334,6 +305,32 @@ xline(params.Lc, '--b', '$L_c$', ...
     'LabelHorizontalAlignment', 'left', ...
     'HandleVisibility', 'off');
 
+% Add intermittency corrections to plot I
+% Predictions are based on the calibrated dimensions D_beta and D_bifractal
+
+% Choose a representative range
+l_pred = logspace(log10(params.lambda), log10(params.Lc), 100);
+
+% Anchor the prediction lines
+l_ref = sqrt(l_pred(1) * l_pred(end));
+[~, idx_ref] = min(abs(l_S2 - l_ref));
+H_ref = H_smooth(idx_ref);
+
+loglog(l_pred, H_ref * (l_pred / l_ref).^H_beta_exp, '-.', ...
+    'LineWidth', params.plot.lw, ...
+    'Color', [0, 0.5, 0], ...
+    'DisplayName', sprintf('$\\beta$-model ($l^{%.3f}$)', H_beta_exp));
+
+loglog(l_pred, H_ref * (l_pred / l_ref).^H_bifractal_exp, ':', ...
+    'LineWidth', params.plot.lw, ...
+    'Color', 'b', ...
+    'DisplayName', sprintf('bifractal ($l^{%.3f}$)', H_bifractal_exp));
+
+legend('show', ...
+    'Interpreter', 'latex', ...
+    'fontsize', params.plot.legendFontSize, ...
+    'Location', 'NorthEast');
+
 % Save the plot automatically
 if isgraphics(plot1I)
     exportgraphics(plot1I, fullfile(params.plot.folder, "plot1I.png"), "Resolution", 300);
@@ -353,12 +350,10 @@ fprintf('\n[Calibrated dimensions]\n');
 fprintf('beta-model:      D = %.6f, C = %.6f\n', D_beta, C_beta);
 fprintf('bifractal model: D = %.6f, C = %.6f\n', D_bifractal, C_bifractal);
 
-fprintf('\n[Scalings for results table]\n');
+fprintf('\n[Scalings]\n');
 fprintf('beta-model:      E(k) ~ k^(%.6f)\n', params.beta_E_exp);
 fprintf('bifractal model: E(k) ~ k^(%.6f)\n', params.bifractal_E_exp);
 fprintf('beta-model:      H(l) ~ l^(%.6f)\n', H_beta_exp);
 fprintf('bifractal model: H(l) ~ l^(%.6f)\n', H_bifractal_exp);
-
-fprintf('\n[Additional flatness scalings]\n');
 fprintf('beta-model:      F(l) ~ l^(%.6f)\n', F_beta_exp);
 fprintf('bifractal model: F(l) ~ l^(%.6f)\n', F_bifractal_exp);
