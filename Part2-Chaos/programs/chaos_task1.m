@@ -17,11 +17,18 @@ if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
 
+%% --- Common setup ---
+params.plot.fontSize = 20;
+params.plot.legendFontSize = 18;
+params.plot.insetFontSize = 16;
+params.plot.lw = 2.1;
+params.plot.lwsmall = 1.8;
+
 %% inputs
 N = 128;                       % spatial resolution
 
 nu_values = [1e-2, 1e-3, 8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4];
-nu = nu_values(3);             % hyperviscosity parameter
+nu = nu_values(5);             % hyperviscosity parameter
 
 T_trans = 1000 * nu;           % transient time period
 T_int = 250 * nu;              % analysis time period
@@ -38,12 +45,7 @@ v0 = field2vector(u0,N);       % initial state vector
 [v1000,~] = KSE_integrate(v0,T_trans,dt,0,nu,N);
 
 %% Step 3: perturbing the state vector
-r = zeros(size(v1000));        % the perturbation vector memory allocation
-for k = 1:length(r)
-    eta = rand();              % random number in the interval (0,1)
-    r(k) = epsilon * (2*eta - 1) * v1000(k);
-end
-
+r = epsilon * (2 * rand(size(v1000)) - 1) .* v1000;
 v_perturbed = v1000 + r;       % Add perturbation to the starting state vector
 
 %% Steps 2 & 3: Advance both states for T_int
@@ -60,29 +62,61 @@ for i = 1:length(tt1)
 end
 
 %% Steps 2, 3, 4, 5: Plotting A(nu)
-plotA = figure('Position', [100, 100, 1200, 800], 'Name', sprintf('KSE Dynamics for nu = %g', nu));
+plotname = "Plot2A";
+extraplotname = "Plot2Extra";
+
+for i = 1:length(nu_values)
+    if nu == nu_values(i)
+        plotname = plotname + num2str(i) + ".png";
+        extraplotname = extraplotname + num2str(i) + ".png";
+        break;
+    end
+end
+
+plot2A = figure("Name", plotname);
 
 % Panel 1: Space-time contour of u1(x,t)
 subplot(2, 2, 1);
 contourf(x, tt1/nu, u1', 50, 'LineStyle', 'none');
 colorbar;
-xlabel('x'); ylabel('t / \nu');
-title('Panel 1: Unperturbed u_1(x,t)');
+
+xlabel('$x\;[\mathrm{m}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$\mathrm{t / \nu}\;[\mathrm{s^2/m^2}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+title('Panel 1: Unperturbed u_1(x,t)', ...
+    'FontSize', params.plot.fontSize);
 
 % Panel 2: Space-time contour of u2(x,t)
 subplot(2, 2, 2);
 contourf(x, tt2/nu, u2', 50, 'LineStyle', 'none');
 colorbar;
-xlabel('x'); ylabel('t / \nu');
-title('Panel 2: Perturbed u_2(x,t)');
+
+xlabel('$x\;[\mathrm{m}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$\mathrm{t / \nu}\;[\mathrm{s^2/m^2}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+title('Panel 2: Perturbed u_2(x,t)', ...
+    'FontSize', params.plot.fontSize);
 
 % Panel 3: Absolute difference |u1(x,t) - u2(x,t)|
 subplot(2, 2, 3);
 abs_diff = abs(u1 - u2);
 contourf(x, tt1/nu, abs_diff', 50, 'LineStyle', 'none');
 colorbar;
-xlabel('x'); ylabel('t / \nu');
-title('Panel 3: Difference |u_1 - u_2|');
+
+xlabel('$x\;[\mathrm{m}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$\mathrm{t / \nu}\;[\mathrm{s^2/m^2}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+title('Panel 3: Difference |u_1 - u_2|', ...
+    'FontSize', params.plot.fontSize);
 
 % Panel 4: 2D Projection onto P and D
 [E1, P1, D1] = projection(vv1, N, nu);
@@ -98,22 +132,33 @@ plot(P2, D2, 'Color', color_red_alpha, 'LineWidth', 1.5, 'DisplayName', 'Perturb
 plot(P1, D1, 'Color', color_blue_alpha, 'LineWidth', 1.5, 'DisplayName', 'Unperturbed');
 plot(P1(1), D1(1), 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 6, 'DisplayName', 'Start Point');
 
-xlabel('Energy Production Rate (P)'); 
-ylabel('Energy Dissipation Rate (D)');
-title('Panel 4: 2D Phase Portrait');
+xlabel('Energy Production Rate (P)', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('Energy Dissipation Rate (D)', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+title('Panel 4: 2D Phase Portrait', ...
+    'FontSize', params.plot.fontSize);
+
 legend('Location', 'best');
 
 %% Extra: compute divergence timescale
 error_norm = vecnorm(vv1 - vv2);
 
 % Plot the error
-plotB = figure('Name', sprintf('Error for nu = %g', nu));
+plot2Extra1 = figure('Name', extraplotname);
 semilogy(tt1/nu, error_norm, 'k', 'LineWidth', 1.5);
 hold on; grid on;
 
-xlabel('Time (t / \nu)');
-ylabel('|| v_1(t) - v_2(t) ||');
-title('Divergence of perturbed trajectory');
+xlabel('$\mathrm{t / \nu}\;[\mathrm{s^2/m^2}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$|| v_1(t) - v_2(t) ||\;[\mathrm{m/s}]$', 'Interpreter', 'latex', ...
+    'FontSize', params.plot.fontSize);
+
+title('Divergence of perturbed trajectory', ...
+    'FontSize', params.plot.fontSize);
 
 mean_state_size = mean(vecnorm(vv1));
 threshold = 0.1 * mean_state_size;
@@ -126,24 +171,25 @@ threshold_label = '10% Mean Attractor Size';
 yline(threshold, 'r--', threshold_label, 'LabelHorizontalAlignment', 'left');
 dev_idx = find(error_norm >= threshold, 1);
 
+% Save the plots automatically
+if isgraphics(plot2A)
+    exportgraphics(plot2A, fullfile(params.plot.folder, plotname), "Resolution", 300);
+else
+    disp('Skipped exporting ' + plotname + ' (figure was closed).');
+end
+
+if isgraphics(plot2Extra1)
+    exportgraphics(plot2Extra1, fullfile(params.plot.folder, extraplotname), "Resolution", 300);
+else
+    disp('Skipped exporting ' + extraplotname + ' (figure was closed).');
+end
+
+%% --- Display results ---
+fprintf('================ Part 2.1 results ================\n');
 if ~isempty(dev_idx)
     t_deviation = tt1(dev_idx) / nu;
     plot(t_deviation, error_norm(dev_idx), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
-    fprintf('For nu = %g, significant deviation occurs at t/nu approx: %.1f\n', nu, t_deviation);
+    fprintf('For nu = %g, significant deviation occurs at t/nu approx: %e\n', nu, t_deviation);
 else
     fprintf('For nu = %g, no significant deviation occurred (system is stable).\n', nu);
-end
-
-% Save the plots automatically
-if isgraphics(plotA)
-    name = "Chaos1A" + nu + ".png";
-    exportgraphics(plotA, fullfile(params.plot.folder, name), "Resolution", 300);
-else
-    disp('Skipped exporting plotA (figure was closed).');
-end
-
-if isgraphics(plotB)
-    exportgraphics(plotB, fullfile(params.plot.folder, "Chaos1B.png"), "Resolution", 300);
-else
-    disp('Skipped exporting plotB (figure was closed).');
 end
