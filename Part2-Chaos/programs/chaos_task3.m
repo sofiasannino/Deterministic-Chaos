@@ -97,9 +97,6 @@ xlabel('$x\;\mathrm{[m]}$','Interpreter','latex', ...
 ylabel('$t\;\mathrm{[s]}$','Interpreter','latex', ...
     'FontSize', params.plot.fontSize);
 
-title(sprintf('Limit cycle at $\\nu = %.1e$',nu0),'Interpreter','latex', ...
-    'FontSize', params.plot.fontSize);
-
 colorbar;
 
 % Save the plot automatically
@@ -125,9 +122,6 @@ ylabel('$P$','Interpreter','latex', ...
 zlabel('$D$','Interpreter','latex', ...
     'FontSize', params.plot.fontSize);
 
-title('Limit cycle in $(E,P,D)$','Interpreter','latex', ...
-    'FontSize', params.plot.fontSize);
-
 % Save the plot automatically
 if isgraphics(plot2D)
     exportgraphics(plot2D, fullfile(params.plot.folder, "Plot2D.png"), "Resolution", 300);
@@ -135,14 +129,8 @@ else
     disp('Skipped exporting plot2D (figure was closed).');
 end
 
-%% first continuation step
-%STEP2 of section 4.1: recompute the periodic orbit for m=20 values of nu
-%going from nu0 to 3/4 nu0. use different initial guesses:
-%- For i = 1, use the converged solution from ν = ν0 as the initial guess
-%– For i = 2, ..., m, construct the guess state v(i)g and T(i)g by linear
-%extrapolation from the two most recently converged state vectors and periods.
-
-% first continuation guess from the converged limit cycle at nu0
+%% Continuation
+% First continuation guess from the converged limit cycle at nu0
 i = 2;
 
 nu = nu_vec(i);
@@ -163,7 +151,6 @@ flag_vec(i) = flag;
 i = 3;
 
 while i <= m + 1
-
     nu = nu_vec(i);
     dt = dt_vec(i);
 
@@ -175,7 +162,7 @@ while i <= m + 1
     % Converge the periodic orbit at the new value of nu
     [v_new,T_new,flag] = search4PO(vg,Tg,dt,nu,N);
 
-    % save converged solution
+    % Save converged solution
     v_vec(:,i) = v_new;
     T_vec(i) = T_new;
     flag_vec(i) = flag;
@@ -192,9 +179,9 @@ conv_idx = flag_vec > 0;
 fail_idx = flag_vec <= 0;
 
 % Plot continuation curve
-p1 = plot(nu_vec,T_vec,'-','LineWidth', params.plot.lw);
+p1 = plot(nu_vec, T_vec,'-','LineWidth', params.plot.lw);
 handles = p1; 
-labels = {'continuation branch'};
+labels = {'T curve'};
 
 % Plot converged points
 if any(conv_idx)
@@ -220,10 +207,7 @@ xlabel('$\nu\;\mathrm{[m^2/s]}$','Interpreter','latex', ...
 ylabel('$T\;\mathrm{[s]}$','Interpreter','latex', ...
     'FontSize', params.plot.fontSize);
 
-title('Continuation of the limit cycle period','Interpreter','latex', ...
-    'FontSize', params.plot.fontSize);
-
-legend(handles, labels, 'Location','best','Interpreter','latex',...
+legend(handles, labels, 'Location','northwest','Interpreter','latex',...
     'FontSize', params.plot.legendFontSize);
 
 % Save the plot automatically
@@ -234,32 +218,22 @@ else
 end
 
 %% Floquet exponents
-
-%STEP3 of section 4.1: 1)repeat the computation of step 3.2 for each nu and
-%integrate for exactly one trajectory; 2)plot Floquet multipliers as
-%function of nu e report the relevant ones in the table
-
 for i = 1:(m + 1)
-
     nu = nu_vec(i);
     dt = dt_vec(i);
     T  = T_vec(i);
     v0 = v_vec(:,i);
 
-    % compute the Jacobian of the flow map over one period
-    J = Jacobian(v0,T,epsilon,dt,nu,N);
-
-    % Floquet multipliers are the eigenvalues of the Jacobian
+    J = Jacobian(v0, T, epsilon, dt, nu, N);
     lambda = eig(J);
 
-    % remove the trivial multiplier lambda = 1
+    % Remove the trivial multiplier lambda = 1
     lambda_tol = 1e-6;
     idx_trivial = find(abs(lambda - 1) < lambda_tol);
     
+    % If lambda = 1 is not exact because of numerical error,
+    % remove the closest multiplier to 1
     if isempty(idx_trivial)
-    
-        % If lambda = 1 is not exact because of numerical error,
-        % remove the closest multiplier to 1
         [~,idx_trivial] = min(abs(lambda - 1));
     
     end
@@ -274,9 +248,29 @@ end
 plot2F = figure('Name', 'Plot2F');
 hold on; grid on;
 
-plot(nu_vec, lambda_vec, 'o-', 'LineWidth', params.plot.lw);
+p1_F = plot(nu_vec, lambda_vec, '-', 'LineWidth', params.plot.lw);
+handles_F = p1_F; 
+labels_F = {'$|\lambda^\ast|$ curve'};
 
-yline(1,'--','LineWidth', params.plot.lw);
+if any(conv_idx)
+    p2_F = plot(nu_vec(conv_idx), lambda_vec(conv_idx), 'o', ...
+        'MarkerSize', 6, 'LineWidth', params.plot.lw);
+    handles_F(end+1) = p2_F;
+    labels_F{end+1} = 'converged';
+end
+
+if any(fail_idx)
+    p3_F = plot(nu_vec(fail_idx), lambda_vec(fail_idx), 'x', ...
+        'MarkerSize', 8, 'LineWidth', params.plot.lw);
+    handles_F(end+1) = p3_F;
+    labels_F{end+1} = 'not converged';
+end
+
+yline(1,'--k', '$|\lambda^\ast| = 1$', ...
+     'Interpreter', 'latex', 'fontsize', params.plot.fontSize, ...
+     'LineWidth', params.plot.lw, ...
+     'LabelVerticalAlignment', 'top', 'HandleVisibility', 'off', ...
+     'LabelHorizontalAlignment', 'right');
 
 xlabel('$\nu\;\mathrm{[m^2/s]}$','Interpreter','latex', ...
     'FontSize', params.plot.fontSize);
@@ -284,9 +278,8 @@ xlabel('$\nu\;\mathrm{[m^2/s]}$','Interpreter','latex', ...
 ylabel('$|\lambda^\ast|$','Interpreter','latex', ...
     'FontSize', params.plot.fontSize);
 
-title('Floquet stability of the continued limit cycle', ...
-    'Interpreter','latex', ...
-    'FontSize', params.plot.fontSize);
+legend(handles_F, labels_F, 'Location','northwest','Interpreter','latex',...
+    'FontSize', params.plot.legendFontSize);
 
 % Save the plot automatically
 if isgraphics(plot2F)
