@@ -17,54 +17,48 @@ if ~exist(params.plot.folder, "dir")
     mkdir(params.plot.folder);
 end
 
-%% inputs
+%% --- Common setup ---
+params.plot.fontSize = 20;
+params.plot.legendFontSize = 18;
+params.plot.insetFontSize = 16;
+params.plot.lw = 2.1;
+params.plot.lwsmall = 1.8;
+
+%% Inputs
 N = 128;                       % spatial resolution
 epsilon = 1e-6;                % perturbation amplitude for computing J
-
-% continuation parameters
 m = 20;                        % number of continuation steps
-%TBC
-nu0 = 8e-4;                      % initial hyperviscosity parameter - to be completed 
+nu0 = 8e-4;                    % initial hyperviscosity parameter
 nu_final = 3 * nu0 / 4;        % final hyperviscosity parameter
 
-% initialize continuation vectors / matrices
+% Initialize continuation vectors / matrices
 nu_vec = linspace(nu0, nu_final, m + 1);    % vector of hyperviscosity values
 v_vec = zeros(round(N / 3), m + 1);         % matrix of converged states
 T_vec = zeros(1, m + 1);                    % vector of converged periods
 dt_vec = 0.1 * nu_vec;                      % vector of time-steps for time integration
 lambda_vec = zeros(1, m + 1);               % vector of max. Floquet multiplier
-
 flag_vec = zeros(1, m + 1);                 % vector of convergence flags
 
-%% converge and plot the limit cycle
-
-%STEP1 of section 4.1:
-%1)repeat section 3.1; 2)call search4PO and verify
-%convergence; 3)plot in space-time and (E,P,D),
-
-%1)
-% initial condition at nu0
+%% Converge and plot the limit cycle
+% Initial condition at nu0
 [x,~] = domain(N);
 u_init = sin(2*pi*x) / sqrt(nu0);
 v_init = field2vector(u_init,N);
 
-% transient integration to reach the limit cycle
+% Transient integration to reach the limit cycle
 T_trans = 1000 * nu0;
-T_int   = 250  * nu0;
-dt      = dt_vec(1);
-
+T_int = 250  * nu0;
+dt = dt_vec(1);
 [v_trans,~] = KSE_integrate(v_init,T_trans,dt,0,nu0,N);
 
-% store a short trajectory on the limit cycle
+% Store a short trajectory on the limit cycle
 [v_traj,t_traj] = KSE_integrate(v_trans,T_int,dt,dt,nu0,N);
 
-%2)
-% use the last state as initial guess for the periodic point
+% Use the last state as initial guess for a point on the periodic orbit
 vg0 = v_traj(:,end);
 
-% estimate the period from consecutive maxima of the energy
-[E_traj,~,~] = projection(v_traj,N,nu0);
-
+% Estimate the period from consecutive maxima of the energy
+[E_traj,~,~] = projection(v_traj, N, nu0);
 E_traj = E_traj(:);
 t_traj = t_traj(:);
 
@@ -75,59 +69,70 @@ imax = find( ...
 
 Tg0 = t_traj(imax(end)) - t_traj(imax(end-1));
 
-% converge the periodic orbit
+% Converge to the periodic orbit
 [v0,T0,flag] = search4PO(vg0,Tg0,dt,nu0,N);
 
-% save converged solution
+% Save converged solution
 v_vec(:,1) = v0;
 T_vec(1) = T0;
-flag_vec(1) = flag; % populating flag vector for comparison at different nu
+flag_vec(1) = flag;
 
-fprintf('\n Search4PO concluded with flag = %d\n',flag);
-fprintf('Analysed nu = %.4e, estimated period T = %.6e  \n',nu0,T0);
-
-% verify by integrating the converged state for one period
+% Verify by integrating the converged state for one period
 [v_orbit,t_orbit] = KSE_integrate(v0,T0,dt,dt,nu0,N);
 
-%3)
-% space-time plot
+% Space-time plot
 u_orbit = zeros(N,length(t_orbit));
 
 for j = 1:length(t_orbit)
     u_orbit(:,j) = vector2field(v_orbit(:,j),N);
 end
 
-plotA = figure();
+plot2C = figure("Name", "Plot2C");
+
 contourf(x,t_orbit,u_orbit.',40,'LineColor','none');
-xlabel('$x$','Interpreter','latex');
-ylabel('$t$','Interpreter','latex');
-title(sprintf('Limit cycle at $\\nu = %.1e$',nu0),'Interpreter','latex');
+
+xlabel('$x\;\mathrm{[m]}$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$t\;\mathrm{[s]}$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+title(sprintf('Limit cycle at $\\nu = %.1e$',nu0),'Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
 colorbar;
 
 % Save the plot automatically
-if isgraphics(plotA)
-    exportgraphics(plotA, fullfile(params.plot.folder, "Chaos3A.png"), "Resolution", 300);
+if isgraphics(plot2C)
+    exportgraphics(plot2C, fullfile(params.plot.folder, "Plot2C.png"), "Resolution", 300);
 else
-    disp('Skipped exporting plotA (figure was closed).');
+    disp('Skipped exporting plot2C (figure was closed).');
 end
 
 % 3D projection in (E,P,D)
 [E_orbit,P_orbit,D_orbit] = projection(v_orbit,N,nu0);
 
-plotB = figure();
-plot3(E_orbit,P_orbit,D_orbit,'LineWidth',1.5);
+plot2D = figure("Name", "Plot2D");
+plot3(E_orbit, P_orbit, D_orbit,'LineWidth', params.plot.lw);
 grid on;
 
-xlabel('$E$','Interpreter','latex');
-ylabel('$P$','Interpreter','latex');
-zlabel('$D$','Interpreter','latex');
-title('Limit cycle in $(E,P,D)$','Interpreter','latex');
+xlabel('$E$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$P$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+zlabel('$D$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+title('Limit cycle in $(E,P,D)$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
 
 % Save the plot automatically
-if isgraphics(plotB)
-    exportgraphics(plotB, fullfile(params.plot.folder, "Chaos3B.png"), "Resolution", 300);
+if isgraphics(plot2D)
+    exportgraphics(plot2D, fullfile(params.plot.folder, "Plot2D.png"), "Resolution", 300);
 else
-    disp('Skipped exporting plotB (figure was closed).');
+    disp('Skipped exporting plot2D (figure was closed).');
 end
 
 %% first continuation step
@@ -146,19 +151,15 @@ dt = dt_vec(i);
 vg = v_vec(:,i-1);
 Tg = T_vec(i-1);
 
-% converge the periodic orbit at the new value of nu
+% Converge the periodic orbit at the new value of nu
 [v_new,T_new,flag] = search4PO(vg,Tg,dt,nu,N);
 
-% save converged solution
+% Save converged solution
 v_vec(:,i) = v_new;
 T_vec(i) = T_new;
 flag_vec(i) = flag;
 
-fprintf('\n Continuation step %d of %d , concluded with flag = %d\n',i-1,m,flag);
-fprintf('Analysed nu = %.4e, estimated period T = %.6e  \n',nu,T_new);
-
-%% subsequent continuation steps
-
+%% Subsequent continuation steps
 i = 3;
 
 while i <= m + 1
@@ -166,12 +167,12 @@ while i <= m + 1
     nu = nu_vec(i);
     dt = dt_vec(i);
 
-    % linear extrapolation from the two previous converged solutions,
+    % Linear extrapolation from the two previous converged solutions,
     % assuming uniform spacing in nu
     vg = 2 * v_vec(:,i-1) - v_vec(:,i-2);
     Tg = 2 * T_vec(i-1)   - T_vec(i-2);
 
-    % converge the periodic orbit at the new value of nu
+    % Converge the periodic orbit at the new value of nu
     [v_new,T_new,flag] = search4PO(vg,Tg,dt,nu,N);
 
     % save converged solution
@@ -179,15 +180,11 @@ while i <= m + 1
     T_vec(i) = T_new;
     flag_vec(i) = flag;
 
-    fprintf('\n Continuation step %d/%d concluded with flag = %d\n',i-1,m,flag);
-    fprintf('Analysed nu = %.4e, estimated period T = %.6e  \n',nu,T_new);
-
     i = i + 1;
-
 end
 
 % Plot period as a function of nu
-plotC = figure();
+plot2E = figure('Name', 'Plot2E');
 hold on; grid on;
 
 % Identify successful and unsuccessful convergence
@@ -195,14 +192,15 @@ conv_idx = flag_vec > 0;
 fail_idx = flag_vec <= 0;
 
 % Plot continuation curve
-p1 = plot(nu_vec,T_vec,'-','LineWidth',1.5);
+p1 = plot(nu_vec,T_vec,'-','LineWidth', params.plot.lw);
 handles = p1; 
 labels = {'continuation branch'};
 
 % Plot converged points
 if any(conv_idx)
     p2 = plot(nu_vec(conv_idx), T_vec(conv_idx), 'o', ...
-        'MarkerSize', 6, 'LineWidth', 1.5);
+        'MarkerSize', 6, 'LineWidth', params.plot.lw);
+
     handles(end+1) = p2;
     labels{end+1} = 'converged';
 end
@@ -210,31 +208,29 @@ end
 % Plot non-converged points
 if any(fail_idx)
     p3 = plot(nu_vec(fail_idx), T_vec(fail_idx), 'x', ...
-        'MarkerSize', 8, 'LineWidth', 1.5);
+        'MarkerSize', 8, 'LineWidth', params.plot.lw);
+
     handles(end+1) = p3;
     labels{end+1} = 'not converged';
 end
 
-xlabel('$\nu$','Interpreter','latex');
-ylabel('$T$','Interpreter','latex');
-title('Continuation of the limit cycle period','Interpreter','latex');
-legend(handles, labels, 'Location','best','Interpreter','latex');
+xlabel('$\nu\;\mathrm{[m^2/s]}$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$T\;\mathrm{[s]}$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+title('Continuation of the limit cycle period','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+legend(handles, labels, 'Location','best','Interpreter','latex',...
+    'FontSize', params.plot.legendFontSize);
 
 % Save the plot automatically
-if isgraphics(plotC)
-    exportgraphics(plotC, fullfile(params.plot.folder, "Chaos3C.png"), "Resolution", 300);
+if isgraphics(plot2E)
+    exportgraphics(plot2E, fullfile(params.plot.folder, "Plot2E.png"), "Resolution", 300);
 else
-    disp('Skipped exporting plotC (figure was closed).');
-end
-
-% print values required in the report table
-selected_idx = [1 6 11 16 21];
-
-fprintf('\n ---- Values for the report table ----:\n');
-fprintf('      nu              T              flag\n');
-
-for j = selected_idx
-    fprintf(' %.6e    %.6e      %d\n',nu_vec(j),T_vec(j),flag_vec(j));
+    disp('Skipped exporting plot2E (figure was closed).');
 end
 
 %% Floquet exponents
@@ -262,7 +258,7 @@ for i = 1:(m + 1)
     
     if isempty(idx_trivial)
     
-        % if lambda = 1 is not exact because of numerical error,
+        % If lambda = 1 is not exact because of numerical error,
         % remove the closest multiplier to 1
         [~,idx_trivial] = min(abs(lambda - 1));
     
@@ -270,52 +266,76 @@ for i = 1:(m + 1)
 
     lambda(idx_trivial) = [];
 
-    % store the largest non-trivial multiplier modulus
+    % Store the largest non-trivial multiplier modulus
     lambda_vec(i) = max(abs(lambda));
-
-    fprintf('\n Floquet calculation %d/%d completed\n',i,m+1);
-    fprintf('Analysed nu = %.4e, |lambda*| = %.6e  \n',nu,lambda_vec(i));
-
 end
 
-% plot the largest non-trivial Floquet multiplier as a function of nu
-plotD = figure();
+% Plot the largest non-trivial Floquet multiplier as a function of nu
+plot2F = figure('Name', 'Plot2F');
 hold on; grid on;
 
-plot(nu_vec,lambda_vec,'o-','LineWidth',1.5);
-yline(1,'--','LineWidth',1.2);
-xlabel('$\nu$','Interpreter','latex');
-ylabel('$|\lambda^\ast|$','Interpreter','latex');
-title('Floquet stability of the continued limit cycle','Interpreter','latex');
+plot(nu_vec, lambda_vec, 'o-', 'LineWidth', params.plot.lw);
+
+yline(1,'--','LineWidth', params.plot.lw);
+
+xlabel('$\nu\;\mathrm{[m^2/s]}$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+ylabel('$|\lambda^\ast|$','Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
+
+title('Floquet stability of the continued limit cycle', ...
+    'Interpreter','latex', ...
+    'FontSize', params.plot.fontSize);
 
 % Save the plot automatically
-if isgraphics(plotD)
-    exportgraphics(plotD, fullfile(params.plot.folder, "Chaos3D.png"), "Resolution", 300);
+if isgraphics(plot2F)
+    exportgraphics(plot2F, fullfile(params.plot.folder, "Plot2F.png"), "Resolution", 300);
 else
-    disp('Skipped exporting plotD (figure was closed).');
+    disp('Skipped exporting plot2F (figure was closed).');
 end
 
-% estimate the crossing of |lambda*| = 1
+% Estimate the crossing of |lambda*| = 1
 idx_cross = find((lambda_vec(1:end-1)-1).*(lambda_vec(2:end)-1) <= 0,1,'first');
 
 if ~isempty(idx_cross)
-
     nu_cross = nu_vec(idx_cross) + ...
         (1 - lambda_vec(idx_cross)) * ...
         (nu_vec(idx_cross+1) - nu_vec(idx_cross)) / ...
         (lambda_vec(idx_cross+1) - lambda_vec(idx_cross));
-
-    fprintf('\n Estimated crossing of |lambda*| = 1:\n');
-    fprintf('nu_cross = %.6e\n',nu_cross);
-
 end
 
-% print values required in the report table
+%% --- Display results ---
+fprintf('================ Part 2.3 results ================\n');
+fprintf('Search4PO concluded with flag = %d\n', flag_vec(1));
+fprintf('Analysed nu = %.4e, estimated period T = %.6e  \n', nu_vec(1), T_vec(1));
+
+for i = 2:(m + 1)
+    if i == 2
+        fprintf('\n Continuation step %d of %d , concluded with flag = %d\n', i-1, m, flag_vec(i));
+    else
+        fprintf('\n Continuation step %d/%d concluded with flag = %d\n', i-1, m, flag_vec(i));
+    end
+    fprintf('Analysed nu = %.4e, estimated period T = %.6e  \n', nu_vec(i), T_vec(i));
+end
+
 selected_idx = [1 6 11 16 21];
-
-fprintf('\n ----- Values for the report table: -----\n');
-fprintf('      nu              |lambda*|\n');
-
+fprintf('\n      nu              T              flag\n');
 for j = selected_idx
-    fprintf(' %.6e    %.6e\n',nu_vec(j),lambda_vec(j));
+    fprintf(' %.6e    %.6e      %d\n', nu_vec(j), T_vec(j), flag_vec(j));
+end
+
+for i = 1:(m + 1)
+    fprintf('\n Floquet calculation %d/%d completed\n', i, m+1);
+    fprintf('Analysed nu = %.4e, |lambda*| = %.6e  \n', nu_vec(i), lambda_vec(i));
+end
+
+if ~isempty(idx_cross)
+    fprintf('\n Estimated crossing of |lambda*| = 1:\n');
+    fprintf('nu_cross = %.6e\n', nu_cross);
+end
+
+fprintf('\n      nu              |lambda*|\n');
+for j = selected_idx
+    fprintf(' %.6e    %.6e\n', nu_vec(j), lambda_vec(j));
 end

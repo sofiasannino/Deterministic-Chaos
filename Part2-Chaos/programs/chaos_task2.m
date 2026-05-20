@@ -26,7 +26,7 @@ params.plot.lwsmall = 1.8;
 
 %% Inputs
 nu_values = [8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4];
-nu = nu_values(2);             % hyperviscosity parameter
+nu = nu_values(1);             % hyperviscosity parameter
 
 N = 128;                       % spatial resolution
 dt = 0.1 * nu;                 % time step size for time integration
