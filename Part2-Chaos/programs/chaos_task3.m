@@ -302,9 +302,9 @@ end
 fprintf('================ Part 2.3 results ================\n');
 
 selected_idx = [1 6 11 16 21];
-fprintf('\n      nu              T              |lambda*|              flag\n');
+fprintf('\n     nu              T           |lambda*|           flag\n');
 for j = selected_idx
-    fprintf(' %e    %e    %e    %d\n', nu_vec(j), T_vec(j), lambda_vec(j), flag_vec(j));
+    fprintf('%e    %e    %e    %d\n', nu_vec(j), T_vec(j), lambda_vec(j), flag_vec(j));
 end
 
 if ~isempty(idx_cross)
