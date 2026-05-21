@@ -127,7 +127,6 @@ end
 
 % Corresponding initial guess states
 v_guess = V(:, idx_guess);
-
 n_guesses = size(pairs_scaled, 1);
 
 for q = 1:size(pairs_scaled,1)
@@ -162,7 +161,6 @@ for q = 1:n_guesses
     closure_error_upo(q) = norm(v_end - v_best) / norm(v_best);
 end
 
-
 %% Plot H: chaotic attractor with UPOs
 % Project chaotic trajectory
 [E_att, P_att, D_att] = projection(V, N, nu);
@@ -191,7 +189,7 @@ for q = 1:n_guesses
 
     % Overlay UPO
     plot3(E_orb, P_orb, D_orb, ...
-        'LineWidth', 1.8, ...
+        'LineWidth', params.plot.lw, ...
         'DisplayName', ['$\mathrm{UPO}\ ', num2str(q), '$']);
 end
 
