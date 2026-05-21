@@ -33,7 +33,7 @@ params.plot.lwsmall = 1.8;
 
 %% Inputs
 nu_values = [1e-2, 1e-3, 8 * 1e-4, 6.5 * 1e-4, 2 * 1e-4];
-nu = nu_values(5);             % hyperviscosity parameter
+nu = nu_values(1);             % hyperviscosity parameter
 
 N = 128;                       % spatial resolution
 T_trans = 1000 * nu;           % transient time period
