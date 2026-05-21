@@ -1,19 +1,26 @@
-%% --- Move to this file's folder ---
-try
-    cd(fileparts(matlab.desktop.editor.getActiveFilename));
-catch
-    cd(fileparts(mfilename('fullpath')));
-end
-
 %% --- Clear workspace ---
 clc;
 clear;
-addpath("../functions/");
 
-%% --- Output folder for plots ---
-params.plot.folder = "../plots";
+%% --- Robust Path Setup ---
+% Find the directory of this script, whether running via F5 or F9
+if isempty(mfilename)
+    % Fallback for when running code line-by-line (F9) in the Editor
+    scriptDir = fileparts(matlab.desktop.editor.getActiveFilename);
+else
+    % Standard execution (F5 or command line)
+    scriptDir = fileparts(mfilename('fullpath'));
+end
 
-if ~exist(params.plot.folder, "dir")
+% Build absolute paths relative to the script's directory
+functionsDir = fullfile(scriptDir, '..', 'functions');
+params.plot.folder = fullfile(scriptDir, '..', 'plots');
+
+% Add dependencies to path
+addpath(functionsDir);
+
+% Create the plot folder if it doesn't exist
+if ~exist(params.plot.folder, 'dir')
     mkdir(params.plot.folder);
 end
 
@@ -147,16 +154,18 @@ error_norm = vecnorm(vv1 - vv2);
 
 % Plot the error
 plot2Extra1 = figure('Name', extraplotname);
-semilogy(tt1/nu, error_norm, 'k', 'LineWidth', 1.5);
-hold on; grid on;
+ax_extra = gca;
 
-xlabel('$\mathrm{t / \nu}\;[\mathrm{s^2/m^2}]$', 'Interpreter', 'latex', ...
+semilogy(ax_extra, tt1/nu, error_norm, 'k', 'LineWidth', 1.5);
+hold(ax_extra, 'on'); grid(ax_extra, 'on');
+
+xlabel(ax_extra, '$\mathrm{t / \nu}\;[\mathrm{s^2/m^2}]$', 'Interpreter', 'latex', ...
     'FontSize', params.plot.fontSize);
 
-ylabel('$|| v_1(t) - v_2(t) ||\;[\mathrm{m/s}]$', 'Interpreter', 'latex', ...
+ylabel(ax_extra, '$|| v_1(t) - v_2(t) ||\;[\mathrm{m/s}]$', 'Interpreter', 'latex', ...
     'FontSize', params.plot.fontSize);
 
-title('Divergence of perturbed trajectory', ...
+title(ax_extra, 'Divergence of perturbed trajectory', ...
     'FontSize', params.plot.fontSize);
 
 mean_state_size = mean(vecnorm(vv1));
@@ -167,8 +176,12 @@ threshold_label = '10% Mean Attractor Size';
 % threshold = 100 * error_norm(1);
 % threshold_label = '100x Initial Error';
 
-yline(threshold, 'r--', threshold_label, 'LabelHorizontalAlignment', 'left');
+yline(ax_extra, threshold, 'r--', threshold_label, 'LabelHorizontalAlignment', 'left');
 dev_idx = find(error_norm >= threshold, 1);
+if ~isempty(dev_idx)
+    t_deviation = tt1(dev_idx) / nu;
+    plot(ax_extra, t_deviation, error_norm(dev_idx), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
+end
 
 % Save the plots automatically
 if isgraphics(plot2A)
@@ -187,7 +200,6 @@ end
 fprintf('================ Part 2.1 results ================\n');
 if ~isempty(dev_idx)
     t_deviation = tt1(dev_idx) / nu;
-    plot(t_deviation, error_norm(dev_idx), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
     fprintf('For nu = %g, significant deviation occurs at t/nu approx: %e\n', nu, t_deviation);
 else
     fprintf('For nu = %g, no significant deviation occurred (system is stable).\n', nu);

@@ -1,19 +1,26 @@
-%% --- Move to this file's folder ---
-try
-    cd(fileparts(matlab.desktop.editor.getActiveFilename));
-catch
-    cd(fileparts(mfilename('fullpath')));
-end
-
 %% --- Clear workspace ---
 clc;
 clear;
-addpath("../functions/");
 
-%% --- Output folder for plots ---
-params.plot.folder = "../plots";
+%% --- Robust Path Setup ---
+% Find the directory of this script, whether running via F5 or F9
+if isempty(mfilename)
+    % Fallback for when running code line-by-line (F9) in the Editor
+    scriptDir = fileparts(matlab.desktop.editor.getActiveFilename);
+else
+    % Standard execution (F5 or command line)
+    scriptDir = fileparts(mfilename('fullpath'));
+end
 
-if ~exist(params.plot.folder, "dir")
+% Build absolute paths relative to the script's directory
+functionsDir = fullfile(scriptDir, '..', 'functions');
+params.plot.folder = fullfile(scriptDir, '..', 'plots');
+
+% Add dependencies to path
+addpath(functionsDir);
+
+% Create the plot folder if it doesn't exist
+if ~exist(params.plot.folder, 'dir')
     mkdir(params.plot.folder);
 end
 
@@ -241,16 +248,12 @@ for q = 1:n_guesses
 end
 
 %% --- Display results ---
-fprintf('================ Part 2.4 results ================');
+fprintf('====================================================== Part 2.4 results ======================================================\n');
+fprintf('%-5s  %-12s  %-12s  %-13s  %-6s  %-12s  %-12s  %-12s  %-10s  %-12s\n', ...
+    'UPO', 't', 'T_guess', 'log r(t,T)', 'Flag', 'T_UPO', 'Closure Err', 'Max |lambda|', 'Stability', 'tF_star');
+
 for q = 1:n_guesses
-    fprintf('\nUPO %d\n', q);
-    fprintf('t = %e\n', pairs_scaled(q,1)*nu);
-    fprintf('T_guess = %e\n', T_guess_grid(q));
-    fprintf('log r(t,T) = %e\n', log_r_selected(q));
-    fprintf('search result = %d\n', flag_upo(q));
-    fprintf('T_UPO = %e\n', T_upo(q));
-    fprintf('closure error = %e\n', closure_error_upo(q));
-    fprintf('max |lambda_i| = %e\n', lambda_max_upo(q));
-    fprintf('stability = %s\n', stability_upo(q));
-    fprintf('tF_star = %e\n', tF_star(q));
+    fprintf('%-5d  %-12e  %-12.4e  %-12e  %-6d  %-12e  %-12e  %-12e  %-10s  %-12e\n', ...
+        q, pairs_scaled(q,1)*nu, T_guess_grid(q), log_r_selected(q), flag_upo(q), ...
+        T_upo(q), closure_error_upo(q), lambda_max_upo(q), stability_upo(q), tF_star(q));
 end

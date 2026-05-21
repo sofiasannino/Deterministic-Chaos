@@ -1,19 +1,26 @@
-%% --- Move to this file's folder ---
-try
-    cd(fileparts(matlab.desktop.editor.getActiveFilename));
-catch
-    cd(fileparts(mfilename('fullpath')));
-end
-
 %% --- Clear workspace ---
 clc;
 clear;
-addpath("../functions/");
 
-%% --- Output folder for plots ---
-params.plot.folder = "../plots";
+%% --- Robust Path Setup ---
+% Find the directory of this script, whether running via F5 or F9
+if isempty(mfilename)
+    % Fallback for when running code line-by-line (F9) in the Editor
+    scriptDir = fileparts(matlab.desktop.editor.getActiveFilename);
+else
+    % Standard execution (F5 or command line)
+    scriptDir = fileparts(mfilename('fullpath'));
+end
 
-if ~exist(params.plot.folder, "dir")
+% Build absolute paths relative to the script's directory
+functionsDir = fullfile(scriptDir, '..', 'functions');
+params.plot.folder = fullfile(scriptDir, '..', 'plots');
+
+% Add dependencies to path
+addpath(functionsDir);
+
+% Create the plot folder if it doesn't exist
+if ~exist(params.plot.folder, 'dir')
     mkdir(params.plot.folder);
 end
 
