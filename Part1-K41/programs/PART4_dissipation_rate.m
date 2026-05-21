@@ -63,7 +63,7 @@ keta_max = pi / params.eta / 30;
 figs = findall(0, "Type", "figure", "Name", "Plot1C");
 
 if ~isempty(figs)
-    plotC = figs(1);
+    plot1C = figs(1); %
 else
     if exist(fullfile(params.plot.folder, "plot1C.fig"), "file")
         plot1C = openfig(fullfile(params.plot.folder, "plot1C.fig"), "visible");
